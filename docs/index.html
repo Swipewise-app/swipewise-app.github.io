@@ -1,0 +1,1544 @@
+<!doctype html><html><head><meta charset=utf8><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="theme-color" content="#1E7552"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Dining Coach"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Dining Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: phone-first single column. Sticky header with day strip + hall tabs; meal "tickets" stacked below. */
+:root{
+  --bg:#F3F5F1; --surface:#FFFFFF; --sunk:#E8ECE6; --ink:#16201A; --muted:#5B6A60; --line:#D5DCD3;
+  --accent:#1E7552; --accent-ink:#FFFFFF; --accent-soft:#DCEFE4;
+  --treat:#B8661A; --treat-soft:#FBEBD8;
+  --p:#2F5FD0; --c:#B07A12; --f:#B5446E;
+  --display:"Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1411; --surface:#161E19; --sunk:#1D2721; --ink:#E6EEE8; --muted:#97A79C; --line:#2A362F;
+  --accent:#4CC08A; --accent-ink:#06130C; --accent-soft:#183326;
+  --treat:#F0AE5A; --treat-soft:#33240F;
+  --p:#86A6FF; --c:#E2B74F; --f:#F08DB3; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E1411; --surface:#161E19; --sunk:#1D2721; --ink:#E6EEE8; --muted:#97A79C; --line:#2A362F;
+  --accent:#4CC08A; --accent-ink:#06130C; --accent-soft:#183326;
+  --treat:#F0AE5A; --treat-soft:#33240F;
+  --p:#86A6FF; --c:#E2B74F; --f:#F08DB3; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;margin:0}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 40px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 8px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-stretch:80%;font-weight:850;font-size:26px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.fresh{font-size:12px;color:var(--muted);text-align:right}
+.days{display:flex;gap:6px;overflow-x:auto;padding-block:10px 4px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:6px 10px;min-width:54px;text-align:center;font:inherit;cursor:pointer;position:relative}
+.day b{display:block;font-family:var(--display);font-stretch:85%;font-size:18px;line-height:1.1}
+.day small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.day[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.day[aria-pressed="true"] small{color:inherit;opacity:.75}
+.day .dot{position:absolute;top:5px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--treat)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--sunk);padding:4px;border-radius:12px;margin-top:8px}
+.tab{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:8px 2px;white-space:nowrap;border-radius:9px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hours{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-block:16px 4px}
+.hours .h{font-family:var(--display);font-stretch:85%;font-weight:700;font-size:17px}
+.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.pill.open{background:var(--accent-soft);color:var(--accent)}
+.pill.treat{background:var(--treat-soft);color:var(--treat)}
+details.week{font-size:13px;color:var(--muted)}
+details.week summary{cursor:pointer}
+.weektbl{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin-top:6px;font-variant-numeric:tabular-nums}
+.weektbl .on{color:var(--ink);font-weight:700}
+.meals{display:grid;gap:14px;margin-top:14px}
+.meal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.meal.is-treat{border-color:var(--treat)}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px 8px}
+.mhead h2{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:20px;margin:0}
+.mhead .tgt{font-size:12px;color:var(--muted)}
+.why{padding:0 14px 8px;font-size:14px;color:var(--muted)}
+.meal.is-treat .why{color:var(--treat)}
+ul.items{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 14px;border-top:1px solid var(--line)}
+.item .nm{font-weight:700;min-width:0}
+.item .qty{color:var(--accent);font-weight:700}
+.item .meta{font-size:12px;color:var(--muted);grid-column:1}
+.item .kc{font-family:var(--display);font-stretch:85%;font-weight:700;font-size:17px;text-align:right;font-variant-numeric:tabular-nums}
+.nope{grid-column:2;justify-self:end;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);z-index:9}
+.item .mac{grid-column:2;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.role{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-right:6px;color:var(--muted)}
+.role.protein{color:var(--p)} .role.treat,.role.dessert{color:var(--treat)}
+.mp{color:var(--p)} .mc{color:var(--c)} .mf{color:var(--f)}
+.total{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 14px;background:var(--sunk)}
+.total .big{font-family:var(--display);font-stretch:85%;font-weight:850;font-size:22px;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:99px;background:var(--line);display:flex;overflow:hidden}
+.bar span{display:block;height:100%}
+.total .mac{font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.mfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px 12px}
+.mfoot small{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:700;font-size:13px;padding:7px 12px;border-radius:999px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.empty{padding:14px;color:var(--muted);font-size:14px}
+.daysum{margin-top:16px;padding:14px;border-radius:var(--r);background:var(--ink);color:var(--bg)}
+.daysum h3{margin:0 0 4px;font-family:var(--display);font-stretch:85%;font-size:15px;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
+.daysum .row{display:flex;flex-wrap:wrap;gap:6px 18px;font-variant-numeric:tabular-nums}
+.daysum .row b{font-family:var(--display);font-stretch:85%;font-size:22px}
+.daysum p{margin:8px 0 0;font-size:13px;opacity:.85}
+.tip{margin-top:14px;padding:12px 14px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 var(--r) var(--r) 0;font-size:14px}
+.tip b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:2px}
+.plan h2{font-family:var(--display);font-stretch:85%;font-weight:850;font-size:22px;margin:22px 0 6px}
+.plan p,.plan li{max-width:62ch}
+.plan ul{padding-left:20px;margin:6px 0}
+.plan li{margin-block:4px}
+.rules{display:grid;gap:10px;margin-top:10px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.rule h3{margin:0 0 2px;font-size:15px}
+.rule p{margin:0;color:var(--muted);font-size:14px}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px;text-align:center;font-size:12px}
+.wk div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 2px}
+.wk .t{border-color:var(--treat);background:var(--treat-soft);color:var(--treat);font-weight:700}
+.stale{margin-top:14px;padding:10px 14px;border-radius:var(--r);background:var(--treat-soft);color:var(--treat);font-size:14px;font-weight:700}
+.tl{display:grid;gap:10px;margin-top:14px}
+.cls{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:baseline;padding:6px 2px;font-size:14px}
+.cls .tm{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.cls b{font-family:var(--display);font-stretch:85%;font-size:16px}
+.cls .rm{color:var(--muted)}
+.slot{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.slot.is-treat{border-color:var(--treat)}
+.slot .sh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px 4px}
+.slot .sh h2{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:19px;margin:0}
+.slot .win{padding:0 14px 8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.best{padding:10px 14px;border-top:1px solid var(--line)}
+.best .pl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.best .pl b{font-size:16px}
+.walk{font-size:12px;color:var(--muted);margin-top:2px}
+.pick{margin-top:6px;font-size:14px}
+.est{font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.pill.dd{background:var(--sunk);color:var(--ink)}
+.pill.mp{background:var(--accent-soft);color:var(--accent)}
+.pill.fav{background:var(--ink);color:var(--bg)}
+.mini{list-style:none;margin:6px 0 0;padding:0;font-size:14px}
+.mini li{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.mini li span:last-child{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.alts{padding:8px 14px 12px;border-top:1px dashed var(--line);font-size:13px}
+.alts h3{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.alts li{margin:4px 0}
+.alts ul{margin:0;padding-left:18px}
+.linkbtn{border:0;background:none;color:var(--accent);font:inherit;font-weight:700;font-size:13px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.slot.now{border:2px solid var(--accent)}
+.eyebrow{display:flex;justify-content:space-between;gap:8px;padding:10px 14px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent)}
+.eyebrow span:last-child{color:var(--muted);letter-spacing:.04em}
+.picks{margin-top:12px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--r);padding:12px 14px;display:grid;gap:12px}
+.pk-head h2{font-family:var(--display);font-stretch:85%;font-weight:850;font-size:21px;margin:0}
+.pk-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.pk-meal{display:grid;gap:6px}
+.pk-label{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.pk-label b{color:var(--ink);font-size:14px}
+.pk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.pk-opt{display:grid;gap:2px;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;border-radius:12px;padding:10px 12px;cursor:pointer;min-width:0}
+.pk-opt.on{border:2px solid var(--accent);background:var(--accent-soft)}
+.pk-name{font-weight:700;font-size:15px;line-height:1.25}
+.pk-with{font-size:13px;color:var(--ink);opacity:.85;line-height:1.3}
+.pk-where,.pk-sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pk-opt.on .pk-sub{color:var(--accent);font-weight:700}
+.pk-auto{justify-self:start;font-size:12px}
+.pk-sum{list-style:none;margin:0;padding:0;font-size:14px;display:grid;gap:4px}
+.pk-sum span{color:var(--muted)}
+.budget{margin-top:14px;padding:12px 14px;border-radius:var(--r);background:var(--sunk);font-size:14px}
+.budget b{font-family:var(--display);font-stretch:85%}
+.note{font-size:12px;color:var(--muted);margin-top:22px;line-height:1.5}
+.sel{user-select:all;font-weight:700;color:var(--ink)}
+.menulink{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding:12px 14px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:var(--r);font:inherit;font-weight:700;font-size:15px;cursor:pointer;text-align:left}
+.menulink small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.menulink .arr{color:var(--accent);font-size:20px}
+.back{margin-top:14px}
+.mtitle{font-family:var(--display);font-stretch:85%;font-weight:850;font-size:22px;margin:10px 0 2px}
+.mintro{margin:0;font-size:14px;color:var(--muted)}
+.sync{font-size:12px;color:var(--muted);margin-top:6px}
+.msec{margin-top:16px}
+.msec>h2{font-family:var(--display);font-stretch:85%;font-weight:800;font-size:19px;margin:0 0 6px}
+.mgroup{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:8px}
+.mgroup.fav{border:2px solid var(--accent)}
+.mgroup h3{margin:0;padding:8px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--sunk)}
+.mgroup.fav h3{color:var(--accent);background:var(--accent-soft)}
+.mrow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;width:100%;padding:10px 14px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-height:48px}
+.mgroup h3+.mrow{border-top:0}
+.mrow .nm{font-weight:700;min-width:0}
+.mrow .meta{font-size:12px;color:var(--muted);grid-column:1}
+.mrow .ht{grid-row:1/span 2;grid-column:2;font-size:22px;line-height:1;color:var(--muted)}
+.mrow[aria-pressed="true"] .ht{color:var(--f)}
+.mrow[aria-pressed="true"]{background:var(--accent-soft)}
+.lk{color:var(--f);font-size:13px;margin-left:4px}
+.likes{list-style:none;padding:0;margin:6px 0}
+.likes li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.msearch{position:sticky;top:var(--hdr,0px);z-index:3;background:var(--bg);padding:10px 0 6px;display:flex;gap:8px;align-items:center}
+.msearch input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)}
+.msearch input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.mcount{font-size:12px;color:var(--muted);margin:2px 0 0}
+.modebar{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.modebar:empty{display:none}
+.modebar button{border:0;font:inherit;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;cursor:pointer;background:var(--accent-soft);color:var(--accent)}
+.settings{margin-top:14px;background:var(--surface);border:2px solid var(--ink);border-radius:var(--r);padding:12px 14px;display:grid;gap:10px}
+.settings h2{margin:0!important}
+.settings h3{margin:4px 0 0;font-size:15px}
+.settings .hint{margin:0;font-size:13px;color:var(--muted)}
+.swrow{display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer}
+.swrow small{display:block;font-size:13px;color:var(--muted)}
+.swrow input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto}
+.macgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.macgrid label{display:grid;gap:2px;font-size:13px;font-weight:700}
+.macgrid input{font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0;width:100%}
+.macgrid input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.setbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.setmsg{margin:0;font-size:13px}
+.setmsg.err{color:var(--treat);font-weight:700}
+.profgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.profgrid label{display:grid;gap:2px;font-size:13px;font-weight:700;min-width:0}
+.profgrid .wide{grid-column:1/-1}
+.profgrid input,.profgrid select{font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0;width:100%}
+.profgrid input:focus,.profgrid select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.ht{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.calc{margin:0;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:14px}
+.calc b{font-family:var(--display);font-stretch:85%}
+.vtog{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;cursor:pointer;white-space:nowrap}
+.vtog[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.swrow select{font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);flex:0 1 auto;max-width:55%}
+.setup{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:10px;background:var(--bg)}
+.setup[open]{gap:12px}
+.setup summary{cursor:pointer;font-size:15px}
+.setup summary small{color:var(--muted);font-size:13px}
+.setup textarea{font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;resize:vertical}
+.dbox{display:flex;flex-wrap:wrap;gap:4px 9px;font-size:13px}
+.dbox label{display:flex;align-items:center;gap:4px;font-weight:600;cursor:pointer}
+.dbox input{width:18px;height:18px;accent-color:var(--accent)}
+.classes{display:grid;gap:8px}
+.clrow{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0;display:grid;gap:6px;background:var(--surface)}
+.clrow legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.clgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.clgrid input,.clgrid select{font:inherit;font-size:15px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);min-width:0;width:100%}
+.clgrid .tm2{grid-column:1/-1;display:flex;align-items:center;gap:6px}
+.clrow .linkbtn{justify-self:start}
+@media (prefers-reduced-motion:no-preference){.meal{animation:rise .25s ease-out both}@keyframes rise{from{transform:translateY(4px)}to{transform:none}}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1 id="apptitle">Dining Coach</h1>
+      <div class="fresh" id="fresh">Loading menus…</div>
+    </div>
+    <div class="days" id="days" role="group" aria-label="Pick a day"></div>
+    <div class="tabs" role="tablist" aria-label="View">
+      <button class="tab" role="tab" id="tab-day" data-tab="day" aria-selected="false">My day</button>
+      <button class="tab" role="tab" id="tab-j2" data-tab="J2 Dining" aria-selected="true">J2</button>
+      <button class="tab" role="tab" id="tab-kins" data-tab="Kins Dining" aria-selected="false">Kins</button>
+      <button class="tab" role="tab" id="tab-jcl" data-tab="JCL Dining" aria-selected="false">JCL</button>
+      <button class="tab" role="tab" id="tab-plan" data-tab="plan" aria-selected="false">Plan</button>
+    </div>
+  </header>
+  <main id="main" aria-live="polite">
+    <p class="empty">Loading this week's menus…</p>
+  </main>
+</div>
+
+<script>
+/* ===================== Coaching logic (pure) ===================== */
+const TARGETS = {
+  Breakfast: {min:450, max:650, label:'450–650 cal · 25g+ protein'},
+  Lunch:     {min:600, max:850, label:'600–850 cal · 30g+ protein'},
+  Dinner:    {min:600, max:850, label:'600–850 cal · 30g+ protein'},
+  Treat:     {min:650, max:1000, label:'up to ~1,000 cal · still get protein'}
+};
+// Weekly rhythm: 0=Mon … 6=Sun
+const TREATS = { '1|Lunch':'treat', '2|Dinner':'treat', '4|Dinner':'treat', '5|Lunch':'treat', '6|Dinner':'treat' };
+const HOURS_KEY = {'J2 Dining':'J2 Dining','Kins Dining':'Kins Dining','JCL Dining':'Jester City Limits'};
+const HALLS = ['J2 Dining','Kins Dining','JCL Dining'];
+
+const RX = {
+  skipStation: /garden bar|salad bar|chilled|^open$/i,
+  condiment: /sauce|dressing|syrup|gravy|salsa|pico|cilantro|crema|glaze|topping|jalape|olive|green onion|sliced onion|red onion|lettuce|romaine|tomato slices|cherry tomato|cheese slices|shredded .*cheese|parmesan|feta|sour cream|margarine|butter|honey|croutons|seeds|giardiniera|pickle|ketchup|mustard|mayo|relish|condiment|cucumber|shredded carrots|diced tomato|green pepper|chopped hard boiled|fresh spinach|broccoli florets|french fried onions|sauteed onions|lime|lemon|hummus|guacamole|whipped|jelly|jam|peanut butter|cream cheese|oatmeal topping|topping bar|nacho toppings|spread|vinaigrette|aioli|chutney|raita|sriracha|hot sauce|kimchi|slaw$/i,
+  bread: /\bbun\b|tortilla|naan|pita|\broll\b|bread|breadstick|bagel|english muffin|toast$|croissant/i,
+  treat: /pizza|cookie|cake|brownie|cupcake|cheesecake|crisp|donut|doughnut|fries|tater tots|queso|nacho|chips|pasta bake|alfredo|mac (and|&|n) cheese|fried|cinnamon|muffin|\bpie\b|pudding|churro|ice cream|waffle|french toast|pancake|biscuit|sticky bun|bar$|cobbler|tart|danish|scone|sundae|dorito|\bchip|tater tot|corn dog|breaded chicken|nugget|wings|quesadilla|empanada|schnitzel|calzone|stromboli|burger|buffalo|\bbites\b/i,
+  fruit: /banana|apple|orange|grape|berr|melon|cantaloupe|honeydew|pineapple|mango|pear|fruit|kiwi|peach|plum/i,
+  veg: /broccoli|kale|green bean|vegetable|veggie|cauliflower|brussels|carrot|spinach|zucchini|squash|asparagus|cabbage|\bpeas\b|bok choy|mushroom|collard|edamame|salad|okra|eggplant|peppers|greens|calabacitas|elote|ratatouille|succotash|tomato/i,
+  carb: /rice|quinoa|potato|farro|couscous|pasta|noodle|penne|spaghetti|fusilli|farfalle|beans|lentil|\boat|grits|barley|pilaf|corn on the cob|polenta|chickpea|hash brown|tot/i,
+  protein: /chicken|turkey|beef|steak|pork|fish|salmon|tilapia|cod|catfish|shrimp|tofu|egg|tempeh|yogurt|carnitas|barbacoa|brisket|meatball|carne|bulgogi|teriyaki|tikka|kebab|gyro|shawarma|ham\b|sausage|patty|chili|masala|dal\b|seitan/i
+};
+
+let NOPE=new Set();
+function loadNope(){ try{ NOPE=new Set(JSON.parse(localStorage.getItem('vdc-nope')||'[]')); }catch(e){ NOPE=new Set(); } }
+function saveNope(){ try{ localStorage.setItem('vdc-nope', JSON.stringify([...NOPE])); }catch(e){} }
+function num(x){ return (typeof x==='number' && isFinite(x)) ? x : 0; }
+function pieces(portion){ const m=/^(\d+)\s*(each|ea)\b/i.exec(portion||''); return m? +m[1] : 0; }
+function servingText(portion){
+  const p=(portion||'').trim(); const n=pieces(p);
+  if(n>1) return '1 piece';           // UT lists "2 each" but nutrition is per piece
+  if(/^1 (each|ea)$/i.test(p)) return '1 serving';
+  return p.replace(/ozL$/i,'oz ladle').replace(/ozl$/i,'oz ladle');
+}
+
+function itemFrom(rec, num_, station){
+  const r = rec[num_]; if(!r) return null;
+  return { id:num_, name:r[0].trim(), portion:r[1], serving:servingText(r[1]), legends:r[2],
+    cal:num(r[3]), p:num(r[4]), c:num(r[5]), f:num(r[6]), fiber:num(r[7]), sugar:num(r[8]), sod:num(r[9]),
+    station: station || '', hasNutrition: typeof r[3]==='number' };
+}
+
+function classify(it){
+  const n = it.name.toLowerCase(), st = it.station;
+  if (it.synthetic) return it.role;
+  if (typeof MY!=='undefined' && MY.dislikes && MY.dislikes.test(n)) return 'skip';
+  if (NOPE.has(n)) return 'skip';
+  if (/dessert|bakery/i.test(st) || /cake|cookie|brownie|cupcake|\bpie\b|crisp|cobbler|pudding|cheesecake|donut|doughnut|muffin|danish|scone|cinnamon roll|s'?mores?|krispie|funfetti/i.test(n)) return 'skip';
+  if (RX.skipStation.test(st)) return 'skip';
+  if (!it.hasNutrition || it.cal<=0) return 'skip';
+  if (/dessert|bakery/i.test(st)) return 'treat';
+  if (RX.condiment.test(n) && !(it.p>=12)) return 'skip';
+  if (/(chopped|crispy|crumbled) bacon|^bacon$|bacon bits/.test(n)) return 'skip';
+  if (RX.bread.test(n)) return 'bread';
+  if (/sandwich|\bsub\b|wrap|panini|hoagie|po.?boy|slider/.test(n)) return 'other';
+  if (RX.treat.test(n)) return 'treat';
+  if (RX.fruit.test(n) && it.cal<=150 && !/yogurt|cake|pie|salad|jackfruit/.test(n)) return 'fruit';
+  if (/\bboil\b|sausage/.test(n) && !/patty/.test(n) && RX.veg.test(n)) return 'other';
+  if (/(potato|pasta|chicken|tuna|egg|macaroni|orzo|ham|bowtie) salad|panzanella|samosa|dumpling|pot sticker|potsticker|spring roll|egg roll|casserole/.test(n)) return 'other';
+  if (/soup|bisque|caldo|chowder|gumbo|stew|chili/.test(n)) return (it.p>=12 && it.cal<=400) ? 'protein' : 'other';
+  if (SET().vegan && /bean|lentil|chickpea|garbanzo|edamame|tofu|tempeh|seitan|plant.?based|vegan|falafel|dal\b/i.test(n) && it.p>=5 && it.cal<=450 && !RX.treat.test(n)) return 'protein';
+  const leanRatio = it.cal>0 ? (it.p*4)/it.cal : 0;
+  if ((it.p>=12 && leanRatio>=0.25 && it.cal<=500) || (RX.protein.test(n) && it.p>=6 && it.cal<=450)) return (it.f > it.p*1.1 && it.cal>150) ? 'other' : 'protein';
+  if (RX.veg.test(n) && it.cal<=200) return 'veg';
+  if (RX.carb.test(n) && it.cal<=330) return 'carb';
+  return 'other';
+}
+
+function hashStr(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
+function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; }
+
+function scoreFor(role, it){
+  switch(role){
+    case 'protein': return (it.cal? it.p/it.cal*100 : 0) + Math.min(it.p,35)/4 + Math.min(it.fiber,6)/2
+        - (PROC.test(it.name)?9:0) + (FISH.test(it.name)?4:0) + (FUN.test(it.name)?2.5:0)
+        - (it.sod>1100?5: it.sod>800?2.5:0) - (it.f>22?2:0) - (it.sugar>12?2:0);
+    case 'veg': return Math.min(it.fiber,6) + (/roast|steam|grill|saute|sauté/i.test(it.name)?2:0) - (it.f>12?2:0) - (it.sod>600?2.5:0) - (/bacon/i.test(it.name)?2:0);
+    case 'carb': return Math.min(it.fiber,6) + (/brown|quinoa|sweet potato|bean|lentil|farro|oat|whole/i.test(it.name)?3:0) - (it.sugar>8?2:0);
+    case 'fruit': return Math.min(it.fiber,3) - (it.sugar>20?1:0);
+    case 'treat': return Math.min(it.p,30)/3 + (/pizza|burger|taco|pancake|french toast|waffle|queso|fries|pasta|wings|tender|cake|cookie|brownie/i.test(it.name)?3:0);
+    default: return 0;
+  }
+}
+
+const PROC=/\bham\b|deli|sausage|bacon|pepperoni|salami|hot dog|bratwurst|andouille|chorizo|kielbasa|spam/i;
+const FISH=/fish|salmon|tilapia|cod\b|tuna|shrimp|catfish|pollock|trout|mahi/i;
+const FUN=/taco|bao|bulgogi|curry|teriyaki|stir.?fry|jerk|shawarma|souvlaki|pho|fajita|burrito|bowl|tikka|kebab|gyro|banh|sushi|poke|ramen|carnitas|barbacoa|tandoori|korean|thai|chipotle|cajun|harissa|moroccan|szechuan|kung pao|orange chicken|lemongrass/i;
+const FAMILY=/(chicken|pork|beef|steak|turkey|fish|salmon|tilapia|cod|shrimp|tofu|egg|yogurt|ham|sausage|tempeh|lentil|bean)/i;
+function family(name){ const m=FAMILY.exec(name); return m? m[1].toLowerCase() : name.toLowerCase(); }
+let CARB_CAP=null; // per-meal carb target while a plate is being built
+function carbPenalty(role,c){ if(CARB_CAP==null || role==='carb') return 0; return -Math.max(0,c.c-4)/(role==='protein'?2.5:5); }
+function pick(cands, role, r, avoid, opts={}){
+  const filtered = cands.filter(c=>c.role===role && !avoid.has(c.name.toLowerCase())
+      && (opts.maxCal==null || c.cal<=opts.maxCal) && (!opts.notFamily || family(c.name)!==opts.notFamily)
+      && (!opts.filter || opts.filter(c)));
+  const pool = filtered.some(c=>c.forced) ? filtered : filtered.some(c=>!c.offMeal) ? filtered.filter(c=>!c.offMeal) : filtered;
+  const scored = pool
+    .map(c=>({c, s: scoreFor(role,c) + r()*(role==='treat'?9:4) - (c.recent?6:0) + (c.liked && !c.synthetic ? 30 : 0) + carbPenalty(role,c) + (c.forced?1000:0)}))
+    .sort((a,b)=>b.s-a.s);
+  return scored.length ? scored[0].c : null;
+}
+
+function line(it, qty, role){ return {...it, qty, role}; }
+function totals(lines){
+  const t={cal:0,p:0,c:0,f:0,fiber:0};
+  for(const l of lines){ t.cal+=l.cal*l.qty; t.p+=l.p*l.qty; t.c+=l.c*l.qty; t.f+=l.f*l.qty; t.fiber+=l.fiber*l.qty; }
+  return t;
+}
+
+const ICE_CREAM = {id:'icecream', synthetic:true, role:'dessert', name:'Ice cream', serving:'1 cup (about 2 scoops) · estimate', station:'Hall ice cream if it\'s out, or a single cup from Jester or Kins market',
+  portion:'1 cup', legends:'MLK', cal:270, p:5, c:32, f:14, fiber:1, sugar:28, sod:100, hasNutrition:true};
+function romaineSalad(items){
+  if (typeof MY==='undefined' || !MY.likesRomaine) return null;
+  const find=rx=>items.find(i=>rx.test(i.name));
+  const rom=find(/chopped romaine/i); if(!rom) return null;
+  const parts=[[rom,3],[find(/cherry tomato/i),1],[find(/cucumber/i),1],[find(/shredded carrot/i),1]].filter(x=>x[0]);
+  const sum=k=>parts.reduce((a,[it,q])=>a+(it[k]||0)*q,0);
+  return {id:'romaine', synthetic:true, role:'veg', name:'Romaine side salad', station:rom.station,
+    serving:'3 handfuls romaine + tomato, cucumber · 1 tbsp light dressing', portion:'1 bowl', legends:'VGN',
+    cal:Math.round(sum('cal')+45), p:sum('p'), c:sum('c')+2, f:sum('f')+4, fiber:sum('fiber'), sugar:sum('sugar')+1, sod:sum('sod')+150, hasNutrition:true, liked:true};
+}
+
+/* Vegan protein add-on: salad/garden bar tofu, edamame, beans and chickpeas, sized to close the protein gap */
+function plantAddOn(items, needP){
+  if(needP<5) return null;
+  const at=rx=>items.find(i=>RX.skipStation.test(i.station||'') && rx.test(i.name) && i.hasNutrition && i.p>0);
+  const opts=[[at(/^tofu$/i),4],[at(/^edamame$/i),3],[at(/black beans|kidney beans|pinto beans/i),3],[at(/garbanzo|chickpea/i),3]].filter(x=>x[0]);
+  if(!opts.length) return null;
+  const parts=[]; let p=0;
+  for(let round=0; round<4 && p<needP; round++) for(const o of opts){ if(p>=needP) break; const cur=parts.find(x=>x[0]===o[0]); if(cur){ if(cur[1]>=o[1]) continue; cur[1]++; } else parts.push([o[0],1]); p+=o[0].p; }
+  const sum=k=>parts.reduce((a,[it,q])=>a+(it[k]||0)*q,0);
+  if(sum('p')<6) return null;   // not worth a trip to the salad bar
+  const desc=parts.map(([it,q])=>`${q}× ${it.name.toLowerCase()} (${it.portion})`).join(', ');
+  return {id:'plantaddon', synthetic:true, booster:true, role:'protein', name:'Protein add-on from the salad bar', station:parts[0][0].station,
+    serving:desc, portion:'1 bowl', legends:'VGN', cal:Math.round(sum('cal')), p:sum('p'), c:sum('c'), f:sum('f'), fiber:sum('fiber'), sugar:sum('sugar'), sod:sum('sod'), hasNutrition:true};
+}
+
+function buildPlate(items, meal, kind, r, recentNames, dayUsed, shuffleAvoid, force){
+  const avoid = new Set([...dayUsed, ...shuffleAvoid]);
+  const seen = new Map();
+  const offRx=/breakfast|scramble|hash brown|overnight oats|french toast|waffle|pancake|oatmeal|yogurt|hard boiled/i;
+  for(const it of items){ const k=it.name.toLowerCase(); if(!seen.has(k)) seen.set(k,{...it, role:classify(it), recent: recentNames.has(k), offMeal: meal!=='Breakfast' && offRx.test(it.name), forced: !!force && k===force.toLowerCase(), liked: isLiked(k)}); }
+  const cands=[...seen.values()];
+  const rs = meal!=='Breakfast' ? romaineSalad(items) : null;
+  if (rs) cands.push({...rs, recent:false, offMeal:false});
+  let T = mealTarget(meal, kind); CARB_CAP = T.c;
+  const lowCarb = T.c!=null && T.c<35, carbFit = it=> T.c==null || it.c <= T.c*0.6;
+  const lines=[];
+  const add=(it,q,role)=>{ if(it){ lines.push(line(it,q,role)); avoid.add(it.name.toLowerCase()); } return it; };
+  const isDessert=c=>/dessert|bakery/i.test(c.station) || /cake|cookie|brownie|cupcake|pie|crisp|cobbler|pudding|bar$|treat|donut|muffin|s'?mores?|caramel apple|cinnamon roll|funfetti|nutella|dessert/i.test(c.name);
+  const vegan=SET().vegan;
+  const addDessert=()=>{ if(!vegan && MY.dessert==='ice cream') add(ICE_CREAM,1,'dessert'); };
+  // Vegan: if every protein was already used today, allow a repeat rather than an empty plate
+  const pickP=()=> pick(cands,'protein',r,avoid,{filter:c=>!c.booster}) || (vegan ? pick(cands,'protein',r,new Set(shuffleAvoid),{filter:c=>!c.booster}) : null);
+  const veganTopUp=(goal)=>{
+    if(!vegan) return;
+    const have=()=>totals(lines).p;
+    if(have() < goal-3 && lines.filter(l=>l.role==='protein').length<2){
+      const fam=(lines.find(l=>l.role==='protein')||{}).name;
+      const p2=pick(cands,'protein',r,avoid,{notFamily:fam&&family(fam), maxCal:300, filter:c=>!c.booster && (meal==='Breakfast' || !c.offMeal)});
+      if(p2 && p2.p>=6) add(p2,1,'protein');
+    }
+    if(have() < goal-3){ const b=plantAddOn(items, goal-have()); if(b) add(b,1,'protein'); }
+  };
+
+  if (kind==='treat'){
+    const t = pick(cands,'treat',r,avoid,{filter:c=>!isDessert(c) && c.cal<=750});
+    if(!t){ kind='normal'; T=mealTarget(meal, kind); }
+    else {
+      const per=t.cal; const two=(/pizza/i.test(t.name)||pieces(t.portion)>1||/pancake/i.test(t.name)) && per<=330;
+      add(t, two?2:1, 'treat');
+      if (/burger|patty/i.test(t.name)){ const bun=cands.find(c=>c.role==='bread'&&/bun/i.test(c.name)); add(bun,1,'side'); }
+      if (totals(lines).p < 15 && !vegan){ const pr=pick(cands,'protein',r,avoid,{maxCal:260, filter:c=>!c.booster}); add(pr, pr && pr.p<14 && pr.cal<200 ? 2:1, 'protein'); }
+      veganTopUp(Math.min(T.p, 20));
+      add(rs || pick(cands,'veg',r,avoid),1,'veg');
+      if (meal!=='Breakfast') addDessert();
+      return finish(lines, T, kind, cands, r, avoid, meal);
+    }
+  }
+
+  if (meal==='Breakfast'){
+    const p1 = pickP(); add(p1, p1 && p1.p<12 && p1.cal<=200 ? 2:1, 'protein');
+    if (totals(lines).p < 22){ const p2=pick(cands,'protein',r,avoid,{notFamily:p1&&family(p1.name), maxCal:250}); add(p2, p2 && p2.p<10 && p2.cal<=180 ? 2:1, 'protein'); }
+    veganTopUp(T.p);
+    if(!lowCarb){ const carb = pick(cands,'carb',r,avoid,{filter:carbFit}); add(carb, carb && carb.cal<100 && (T.c==null || carb.c*2<=T.c*0.6) ? 2:1, 'carb'); }
+    if(T.c==null || T.c>=25) add(pick(cands,'fruit',r,avoid,{filter:carbFit}),1,'fruit');
+  } else {
+    const p1 = pickP();
+    add(p1, p1 && p1.p<22 && p1.p*2<=48 && p1.cal<=230 ? 2:1, 'protein');
+    if (p1 && totals(lines).p < 20){ const p2=pick(cands,'protein',r,avoid,{notFamily:family(p1.name), maxCal:220, filter:c=>!c.offMeal && !c.booster && /egg|bean|lentil|tofu|tempeh|edamame|chickpea/i.test(c.name)}) || pick(cands,'protein',r,avoid,{notFamily:family(p1.name), maxCal:220, filter:c=>!c.offMeal && !c.booster}); add(p2,1,'protein'); }
+    veganTopUp(T.p);
+    if (rs) add(rs,1,'veg');
+    add(pick(cands,'veg',r,avoid),1,'veg');
+    if(!lowCarb) add(pick(cands,'carb',r,avoid,{filter:carbFit}),1,'carb'); else add(pick(cands,'veg',r,avoid),1,'veg');
+  }
+  if (kind==='dessert') addDessert();
+  return finish(lines, T, kind, cands, r, avoid, meal);
+}
+
+function finish(lines, T, kind, cands, r, avoid, meal){
+  const count=role=>lines.filter(l=>l.role===role).length;
+  const lowCarb = T.c!=null && T.c<35;
+  const max = kind==='dessert' ? T.max+350 : T.max;
+  let t=totals(lines), guard=0;
+  while(t.cal < T.min && guard++ < 6){
+    let extra=null;
+    const room = it=> T.c==null || t.c + it.c <= T.c*1.1;
+    if (count('veg')<(lowCarb?3:2)) extra=pick(cands,'veg',r,avoid,{filter:room});
+    if (!extra && meal==='Breakfast' && count('fruit')<2) extra=pick(cands,'fruit',r,avoid,{filter:room});
+    if (extra){ lines.push(line(extra,1,extra.role)); avoid.add(extra.name.toLowerCase()); t=totals(lines); continue; }
+    const pl=lines.find(l=>l.role==='protein' && !l.booster && l.qty<(lowCarb?3:2) && l.cal<=300 && l.p*2<=50 && room(l));
+    const cl=lines.find(l=>l.role==='carb' && l.qty<2 && l.cal<=250 && room(l));
+    let p2=null;
+    if (!pl && count('protein')<2 && kind!=='treat'){ const fam=(lines.find(l=>l.role==='protein')||{}).name; const lite={notFamily:fam&&family(fam),maxCal:300};
+      if (T.c!=null) p2=pick(cands,'protein',r,avoid,{...lite, filter:c=>(meal==='Breakfast' || !c.offMeal) && room(c)});
+      if (!p2)
+      p2=pick(cands,'protein',r,avoid,{...lite, filter:c=>(meal==='Breakfast' || !c.offMeal) && /yogurt|egg|bean|lentil|tofu|tempeh|edamame|chickpea|plant|vegan|veggie/i.test(c.name)}); }
+    if (pl){ pl.qty++; }
+    else if (p2){ lines.push(line(p2,1,'protein')); avoid.add(p2.name.toLowerCase()); }
+    else if (cl){ cl.qty++; }
+    else if (count('fruit')<1 && !lowCarb){ const f=pick(cands,'fruit',r,avoid,{filter:room}); if(f){ lines.push(line(f,1,'fruit')); avoid.add(f.name.toLowerCase()); } else break; }
+    else break;
+    t=totals(lines);
+  }
+  guard=0;
+  while(t.p < T.p-4 && t.cal < max-120 && guard++ < 3){ const pl=lines.find(l=>l.role==='protein' && !l.booster && l.qty<3 && l.p>=8 && l.cal<=300 && (T.c==null || t.c+l.c<=T.c*1.1)); if(!pl) break; pl.qty++; t=totals(lines); }
+  guard=0;
+  while(t.cal > max && guard++ < 6){
+    const tq=lines.find(l=>l.role==='treat' && l.qty>1);
+    let i=-1;
+    const pq = kind==='treat' ? lines.find(l=>l.role==='protein' && l.qty>1) : null;
+    if(tq){ tq.qty--; }
+    else if(pq){ pq.qty--; }
+    else if((i=lines.findIndex(l=>l.role==='protein' && !l.booster && kind==='treat' && lines.some(x=>x.role==='treat')))>=0){ lines.splice(i,1); }
+    else if(kind==='treat' && lines.some(l=>l.booster) && (i=lines.findIndex(l=>l.role==='veg'))>=0 && t.cal-max>40){ lines.splice(i,1); }
+    else if((i=lines.findIndex(l=>l.role==='dessert' && kind==='treat'))>=0 && lines.length>3){ lines.splice(i,1); }
+    else {
+      const q = lines.find(l=>l.role==='carb' && l.qty>1) || lines.find(l=>l.role==='treat' && l.qty>1) || lines.find(l=>l.role==='protein' && l.qty>1);
+      if(q) q.qty--;
+      else { i=lines.findIndex(l=>l.role==='carb' || l.role==='fruit'); if(i>=0) lines.splice(i,1); else break; }
+    }
+    t=totals(lines);
+  }
+  return {lines, t, kind, target:T};
+}
+
+function plateScore(p, meal){
+  const t=p.t; let sod=0, sug=0, proc=0, fish=0, fun=0, meats=0;
+  for(const l of p.lines){ sod+=l.sod*l.qty; if(!/fruit/.test(l.role) && !/yogurt|milk/i.test(l.name)) sug+=l.sugar*l.qty;
+    if(PROC.test(l.name)) proc++; if(FISH.test(l.name)) fish++; if(FUN.test(l.name)) fun++; if(l.role==='protein' && !l.booster && !/yogurt|egg|bean|lentil|tofu|tempeh|plant|vegan|veggie/i.test(l.name)) meats++; }
+  const T=p.target, mid=(T.min+T.max)/2, treat=p.kind==='treat';
+  const pMin = T.p;
+  let s = Math.abs(t.cal-mid)/60 + Math.max(0,t.cal-T.max)/25 + Math.max(0,T.min-t.cal)/40;
+  s += Math.max(0, sod-(treat?1600:1100))/120;
+  s += Math.max(0, pMin-t.p)*0.6 + Math.max(0, t.p-Math.max(60, pMin*1.6))*0.25;
+  if(T.c!=null) s += Math.max(0, t.c-T.c*1.1)/(treat?6:2) + Math.max(0, T.c*0.5-t.c)/12;
+  if(T.f!=null) s += Math.max(0, t.f-T.f*1.1)/(treat?6:3) + Math.max(0, T.f*0.6-t.f)/8;
+  s += treat? 0 : Math.max(0, (meal==='Breakfast'?5:8)-t.fiber)*0.8;
+  s += treat? 0 : Math.max(0, sug-15)*0.25;
+  s += (treat?0:proc*4) + Math.max(0,meats-1)*3 - fish*2 - fun*1.5 - (p.lines.some(l=>l.liked && l.synthetic)?2:0) - p.lines.filter(l=>l.liked && !l.synthetic).length*6;
+  return s;
+}
+function bestPlate(items, meal, kind, seed, recent, dayUsed, avoid, force){
+  let best=null, bestS=Infinity;
+  for(let k=0;k<10;k++){
+    const p=buildPlate(items, meal, kind, rng(hashStr(seed+'#v'+k)), recent, dayUsed, avoid, force);
+    if(force && !p.lines.some(l=>l.name.toLowerCase()===force.toLowerCase())) continue;
+    if(!p.lines.some(l=>l.role==='protein'||l.role==='treat')) return {...p, lines:[], t:totals([])};
+    const sc=plateScore(p, meal); if(sc<bestS){ best=p; bestS=sc; }
+  }
+  return best || (force ? null : {lines:[], t:totals([]), kind, target:mealTarget(meal, kind)});
+}
+
+const WHY = {
+  normal:[
+    'Protein first keeps you full through afternoon classes.',
+    'Lean protein, a vegetable and smart carbs. This is the everyday plate.',
+    'Big on protein, easy on oil and sugar. Grab water, not soda.',
+    'Fill half the plate with the vegetable side. Seconds of veggies are always fine.',
+    'Eat slowly. It takes about 20 minutes to feel full.'
+  ],
+  treat:[ 'Treat meal. Enjoy it, no guilt. It is part of the plan.', 'Planned treat: one plate, eat it slowly, then you are done.', 'Treat meal. Still grab the protein and the veggie so you are not hungry an hour later.', 'Treat meal. One plate, no seconds, and it fits the plan just fine.' ],
+  dessert:[ 'Dessert night. Normal plate, plus one dessert you actually want.' ]
+};
+
+/* Plans: memoized per hall+date so variety rules can look back at earlier days */
+let DATA=null; const MEMO=new Map(); const SHUFFLE=new Map();
+function weekdayIdx(dateStr){ const [m,d,y]=dateStr.split('/').map(Number); return (new Date(y,m-1,d).getDay()+6)%7; }
+function kindFor(dateStr, meal){ return TREATS[weekdayIdx(dateStr)+'|'+meal] || 'normal'; }
+function menuVegan(){ return state.menuVegan==null ? SET().vegan : state.menuVegan; }
+function mealItems(hall, date, meal, vg){
+  const day=DATA.days[date]; if(!day||!day[hall]||!day[hall][meal]) return [];
+  const v= vg==null ? SET().vegan : vg;
+  return day[hall][meal].map(([st,n])=>itemFrom(DATA.rec,n,st)).filter(it=>it && (!v || /\bVGN\b/.test(it.legends||'')));
+}
+function dayPlan(hall, date){
+  const key=hall+'|'+date; if(MEMO.has(key)) return MEMO.get(key);
+  const dates=Object.keys(DATA.days); const i=dates.indexOf(date);
+  const recent=new Set();
+  for(const back of [1,2]){ if(i-back>=0){ const prev=dayPlan(hall,dates[i-back]); for(const m in prev) for(const l of prev[m].lines) if(l.role!=='fruit') recent.add(l.name.toLowerCase()); } }
+  const plan={}; const dayUsed=new Set();
+  for(const meal of ['Breakfast','Lunch','Dinner']){
+    const items=mealItems(hall,date,meal); if(!items.length) continue;
+    const p=bestPlate(items, meal, kindFor(date,meal), key+'|'+meal, recent, dayUsed, new Set());
+    p.lines.forEach(l=>{ if(l.role==='protein'||l.role==='treat'||l.role==='dessert') dayUsed.add(l.name.toLowerCase()); });
+    plan[meal]=p;
+  }
+  MEMO.set(key,plan); return plan;
+}
+function mealPlan(hall,date,meal){
+  const base=dayPlan(hall,date)[meal]; if(!base) return null;
+  const n=SHUFFLE.get(hall+'|'+date+'|'+meal)||0; if(!n) return base;
+  const avoid=new Set(); // steer away from what was shown before
+  let shown=base;
+  for(let k=1;k<=n;k++){
+    shown.lines.filter(l=>l.role==='protein'||l.role==='treat').forEach(l=>avoid.add(l.name.toLowerCase()));
+    const sd=hall+date+meal+'#'+k;
+    let next=bestPlate(mealItems(hall,date,meal), meal, kindFor(date,meal), sd, new Set(), new Set(), avoid);
+    if(!next.lines.some(l=>l.role==='protein'||l.role==='treat')){ avoid.clear(); next=bestPlate(mealItems(hall,date,meal), meal, kindFor(date,meal), sd, new Set(), new Set(), new Set()); }
+    shown=next;
+  }
+  return shown;
+}
+
+/* Hours */
+function parseT(s){ s=s.trim().toLowerCase(); if(s==='noon') return 720; if(s==='midnight') return 1440; const m=/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/.exec(s); if(!m) return null; let h=+m[1]%12; if(m[3]==='pm') h+=12; return h*60+(+m[2]||0); }
+function hoursFor(hall, dateStr){ const arr=(DATA.hours||{})[HOURS_KEY[hall]]; return arr? arr[weekdayIdx(dateStr)] : null; }
+function openNow(range, now){ if(!range||/closed/i.test(range)) return false; const mins=now.getHours()*60+now.getMinutes(); return range.split('|').some(seg=>{ const [a,b]=seg.split('-'); const s=parseT(a), e=parseT(b); return s!=null&&e!=null&&mins>=s&&mins<e; }); }
+function prettyHours(r){ return r ? r.replace(/\|/g,' & ').replace(/-/g,'–') : 'Hours not listed'; }
+
+/* ===================== The student's setup (blank by default, editable on the Plan tab; kept on this device) ===================== */
+const BUILDINGS = {
+  SJH: {name:'San Jacinto', lat:30.28234722, lon:-97.73440543, dorm:true},
+  JES: {name:'Jester', lat:30.28265, lon:-97.73675, dorm:true},
+  KIN: {name:'Kinsolving', lat:30.290606, lon:-97.739985, dorm:true},
+  WEL: {name:'Welch Hall', lat:30.286471, lon:-97.737709},
+  JGB: {name:'Jackson Geo Sciences', lat:30.2859018, lon:-97.7357148},
+  CPE: {name:'Chem & Petroleum Eng', lat:30.29025858, lon:-97.73613343},
+  OTH: {name:'Other building'}            // no location: walks are assumed to be about 8 minutes
+};
+const ME_DEFAULT = {
+  name:'', checkIn:'', term:'Fall 2026', home:'SJH',
+  classes: [],
+  goTo: null,
+  dislikes: '',
+  romaine: true,
+  dessert: 'ice cream',
+  dineIn: 0
+};
+const DISLIKE_EXPAND = {stew:'stew|stewed|goulash|bourguignon|gumbo', stews:'stew|stewed|goulash|bourguignon|gumbo', slaw:'slaw', slaws:'slaw', cabbage:'cabbage|kimchi|sauerkraut', 'collard greens':'collard', collards:'collard'};
+function dislikeRx(text){
+  const parts=String(text||'').split(/[,;\n]+/).map(x=>x.trim().toLowerCase()).filter(Boolean).slice(0,30);
+  if(!parts.length) return null;
+  const esc=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const alts=parts.map(x=> DISLIKE_EXPAND[x] || esc(x.replace(/s$/,'')));
+  try{ return new RegExp('\\b(?:'+alts.join('|')+')','i'); }catch(e){ return null; }
+}
+function buildMY(me){
+  const m={...ME_DEFAULT, ...(me||{})};
+  const favorites={};
+  if(m.goTo && m.goTo.spot) for(const d of String(m.goTo.days||'')) { const i=DAYCODE.indexOf(d); if(i>=0) favorites[i+'|Breakfast']=m.goTo.spot; }
+  return { name:m.name||'', checkIn:m.checkIn||'', term:m.term||'', home: BUILDINGS[m.home]? m.home : 'SJH', buildings:BUILDINGS,
+    classes:(m.classes||[]).filter(c=>c && c.days && /^\d{1,2}:\d{2}$/.test(c.start) && /^\d{1,2}:\d{2}$/.test(c.end) && hm(c.end)>hm(c.start)).map(c=>({...c, bldg: BUILDINGS[c.bldg]? c.bldg : 'OTH'})),
+    favorites, goTo:m.goTo, dislikesText:m.dislikes||'', dislikes:dislikeRx(m.dislikes), likesRomaine: m.romaine!==false, dessert: m.dessert==='none'?'none':'ice cream',
+    dineInDollarsPerTerm: Number(m.dineIn)||0, termWeeks:16 };
+}
+const DAYCODE = ['M','T','W','R','F','S','U'];
+let MY = buildMY(null);
+function applyMe(){ MY = buildMY(SET().me); }
+function homeName(){ return MY.buildings[MY.home].name; }
+function whose(){ return MY.name ? MY.name+"'s" : 'Your'; }
+
+/* Campus food spots. Coordinates from UT Dining's map; hours are Fall 2026 (Mon..Sun).
+   Restaurant numbers: Chick-fil-A and Panda from their published nutrition; others are estimates. */
+const SPOTS = [
+  {name:'J2 Dining', hall:'J2 Dining', lat:30.28265, lon:-97.73675},
+  {name:'JCL Dining', hall:'JCL Dining', lat:30.28265, lon:-97.73675},
+  {name:'Kins Dining', hall:'Kins Dining', lat:30.290606, lon:-97.739985},
+  {name:'Cypress Bend Cafe', where:'in San Jacinto', lat:30.282966, lon:-97.734164,
+    hours:['7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','Closed','Closed'],
+    picks:{ Breakfast:{text:'Egg breakfast sandwich or taco from the grill, plus a fruit cup. Coffee or a latte with milk; skip the sugary Starbucks drinks.', cal:'~450', p:'~22g', estimate:true},
+            Lunch:{text:'Grilled chicken sandwich or wrap from the grill with a side salad instead of fries.', cal:'~550', p:'~35g', estimate:true},
+            Dinner:{text:'Grilled chicken sandwich or wrap with a side salad.', cal:'~550', p:'~35g', estimate:true} }},
+  {name:'Chick-fil-A (Texas Union)', where:'Texas Union', lat:30.28663, lon:-97.74116,
+    hours:['10:00am-5:00pm','10:00am-5:00pm','10:00am-5:00pm','10:00am-5:00pm','10:00am-5:00pm','Closed','Closed'],
+    picks:{ any:{text:'12-count Grilled Nuggets + Kale Crunch side + fruit cup. Skip the fries and sweet tea.', cal:'430', p:'43g', estimate:false} }},
+  {name:'Chick-fil-A (WCP)', where:'WCP Student Activity Center', lat:30.284, lon:-97.737,
+    hours:['8:00am-7:00pm','8:00am-7:00pm','8:00am-7:00pm','8:00am-7:00pm','9:00am-4:00pm','11:00am-4:00pm','Closed'],
+    picks:{ Breakfast:{text:'Egg White Grill + fruit cup.', cal:'360', p:'28g', estimate:false},
+            any:{text:'Grilled Cool Wrap + fruit cup, or 12-count Grilled Nuggets + Kale Crunch side.', cal:'410–430', p:'42–43g', estimate:false} }},
+  {name:'Panda Express', where:'Texas Union', lat:30.28663, lon:-97.74116,
+    hours:['11:00am-5:00pm','11:00am-5:00pm','11:00am-5:00pm','11:00am-5:00pm','11:00am-5:00pm','Closed','Closed'],
+    picks:{ any:{text:'Bowl with Super Greens as the base + Grilled Teriyaki Chicken. Add half a scoop of brown rice only if you are really hungry.', cal:'430', p:'47g', estimate:false} },
+    vegan:{ any:{text:'Eggplant Tofu over Super Greens, with half a scoop of brown rice if you are hungry. Ask the counter to confirm today\'s sauces are vegan.', cal:'~450', p:'~12g', estimate:true, low:true} }},
+  {name:'Sabor Tacos y Mas', where:'WCP Student Activity Center', lat:30.284, lon:-97.737,
+    hours:['10:30am-4:00pm','10:30am-4:00pm','10:30am-4:00pm','10:30am-4:00pm','10:30am-4:00pm','Closed','Closed'],
+    picks:{ any:{text:'2–3 grilled chicken or steak tacos on corn tortillas with black beans and salsa. Skip the queso and chips.', cal:'~550', p:'~35g', estimate:true} },
+    vegan:{ any:{text:'Bean and veggie tacos on corn tortillas with salsa and guacamole, no cheese or crema. Ask whether the beans are cooked with lard.', cal:'~500', p:'~15g', estimate:true, low:true} }},
+  {name:'One Two Three Sushi', where:'WCP Student Activity Center', lat:30.284, lon:-97.737,
+    hours:['11:00am-3:00pm','10:00am-6:00pm','10:00am-6:00pm','10:00am-6:00pm','10:00am-4:00pm','Closed','Closed'],
+    picks:{ any:{text:'A salmon or tuna roll plus edamame. Go easy on tempura and spicy mayo rolls.', cal:'~500', p:'~30g', estimate:true} },
+    vegan:{ any:{text:'Avocado or cucumber roll plus a double order of edamame. Skip spicy mayo and tempura.', cal:'~500', p:'~18g', estimate:true} }},
+  {name:'Tower Burger', where:'Texas Union', lat:30.28663, lon:-97.74116,
+    hours:['10:30am-3:00pm','10:30am-3:00pm','10:30am-3:00pm','10:30am-3:00pm','10:30am-3:00pm','Closed','Closed'],
+    picks:{ any:{text:'Single burger with lettuce, tomato and onion (no bacon), side salad instead of fries. Save this one for a treat meal.', cal:'~600', p:'~30g', estimate:true} }},
+];
+const SNACKS = [
+  {name:'Up and Atom', where:'Welch Hall', lat:30.285868, lon:-97.737285, hours:['9:00am-5:00pm','9:00am-5:00pm','9:00am-5:00pm','9:00am-5:00pm','9:00am-3:00pm','Closed','Closed']},
+  {name:'Littlefield Patio Cafe', where:'near Kins', lat:30.289202, lon:-97.739463, hours:['7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','Closed','Closed']},
+  {name:"Hook 'em Hut (WCP)", where:'WCP', lat:30.284, lon:-97.737, hours:['8:00am-3:00pm','8:00am-3:00pm','8:00am-3:00pm','8:00am-3:00pm','8:00am-3:00pm','Closed','Closed']},
+  {name:'Cypress Bend Cafe', where:'in San Jacinto', lat:30.282966, lon:-97.734164, hours:['7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','7:00am-5:00pm','Closed','Closed']},
+  {name:'Jester City Market', where:'Jester', lat:30.28265, lon:-97.73675, hours:['9:00am-Midnight','9:00am-Midnight','9:00am-Midnight','9:00am-Midnight','9:00am-Midnight','Noon-9:00pm','Noon-Midnight']}
+];
+
+function hm(s){ const [h,m]=s.split(':').map(Number); return h*60+(m||0); }
+function fmt(min){ let h=Math.floor(min/60), m=min%60; const ap=h>=12?'pm':'am'; h=h%12||12; return h+(m?':'+String(m).padStart(2,'0'):'')+ap; }
+function walkMin(a,b){
+  if(!a||!b) return 0;
+  if(a.lat==null || b.lat==null) return a===b ? 0 : 8;
+  const R=6371000, toR=x=>x*Math.PI/180;
+  const dLat=toR(b.lat-a.lat), dLon=toR(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLon/2)**2;
+  const meters=2*R*Math.asin(Math.sqrt(h))*1.3;   // campus paths aren't straight lines
+  return Math.max(1, Math.ceil(meters/80));         // ~80 m per minute walking
+}
+function spotHours(spot, wi){ if(spot.hall){ const arr=(DATA.hours||{})[HOURS_KEY[spot.hall]]; return arr? arr[wi] : null; } return spot.hours[wi]; }
+function openDuring(range, from, to){
+  if(!range||/closed/i.test(range)) return false;
+  return range.split('|').some(seg=>{ const [a,b]=seg.split('-'); const s=parseT(a), e=parseT(b); return s!=null&&e!=null&&from>=s&&to<=e; });
+}
+function classesOn(wi){ return MY.classes.filter(c=>c.days.includes(DAYCODE[wi])).map(c=>({...c, s:hm(c.start), e:hm(c.end)})).sort((a,b)=>a.s-b.s); }
+
+function mealSlots(wi){
+  const cl=classesOn(wi); const B=MY.buildings, home=B[MY.home];
+  if(!cl.length) return {cl, slots:[]};
+  const slots=[];
+  const first=cl[0], last=cl[cl.length-1];
+  slots.push({meal:'Breakfast', start:Math.max(7*60, first.s-120), end:first.s-5, from:home, fromName:B[MY.home].name, to:B[first.bldg], toName:first.course});
+  // gaps between classes
+  const gaps=[];
+  for(let i=0;i<cl.length-1;i++){ const g={start:cl[i].e, end:cl[i+1].s, a:cl[i], b:cl[i+1]}; if(g.end-g.start>=40) gaps.push(g); }
+  // lunch: longest gap that starts 11:00–14:00; otherwise right after the morning block
+  const lunchGap = gaps.filter(g=>g.start<=14*60 && Math.min(g.end,15*60)-Math.max(g.start,11*60)>=40).sort((x,y)=>(Math.min(y.end,15*60)-Math.max(y.start,11*60))-(Math.min(x.end,15*60)-Math.max(x.start,11*60)))[0];
+  if(lunchGap) slots.push({meal:'Lunch', start:Math.max(lunchGap.start, lunchGap.end-lunchGap.start>150 ? 11*60 : lunchGap.start), end:lunchGap.end, from:B[lunchGap.a.bldg], fromName:lunchGap.a.course, to:B[lunchGap.b.bldg], toName:lunchGap.b.course});
+  else { const after=cl.filter(c=>c.e<=14*60).pop()||last; const st=Math.max(after.e, 11*60); slots.push({meal:'Lunch', start:st, end:st+90, from:B[after.bldg], fromName:after.course, to:home, toName:'back to '+homeName()}); }
+  for(const g of gaps){ if(g!==lunchGap && g.end-g.start>=50) slots.push({meal:'Snack', start:g.start, end:g.end, from:B[g.a.bldg], fromName:g.a.course, to:B[g.b.bldg], toName:g.b.course}); }
+  const dStart=Math.max(last.e>=15*60? last.e+60 : 17*60+30, 17*60);
+  const lunch=slots.find(x=>x.meal==='Lunch');
+  if(lunch && dStart-lunch.end>=240 && !slots.some(x=>x.meal==='Snack' && x.start>=lunch.end)){
+    const st=Math.max(lunch.end+150, 15*60); slots.push({meal:'Snack', start:st, end:st+60, from:home, fromName:homeName(), to:home, toName:homeName()});
+  }
+  const dFrom = last.e>=15*60 ? B[last.bldg] : home;
+  slots.push({meal:'Dinner', start:dStart, end:dStart+120, from:dFrom, fromName: last.e>=15*60? last.course : homeName(), to:home, toName:homeName()});
+  return {cl, slots: slots.sort((a,b)=>a.start-b.start)};
+}
+
+function optionsFor(slot, wi, date, ignorePick){
+  const list = slot.meal==='Snack' ? SNACKS : SPOTS;
+  const out=[];
+  for(const sp of list){
+    const w1=walkMin(slot.from, sp), w2=walkMin(sp, slot.to);
+    const arrive=slot.start+w1, leave=slot.end-w2, eat=leave-arrive;
+    if(SET().vegan && !sp.hall && slot.meal!=='Snack' && !pickFor(sp, slot.meal)) continue;
+    const need = slot.meal==='Snack'? 10 : 20;
+    if(eat<need) continue;
+    // open window: earliest time he could start eating there
+    const range=spotHours(sp, wi); let ok=false, at=arrive;
+    for(let t=arrive; t+need<=leave; t+=5){ if(openDuring(range,t,t+need)){ ok=true; at=t; break; } }
+    if(!ok) continue;
+    let plan=null;
+    if(sp.hall && slot.meal!=='Snack'){ plan = (DATA.days[date] && DATA.days[date][sp.hall]) ? (ignorePick ? mealPlan(sp.hall, date, slot.meal) : planFor(sp.hall, date, slot.meal)) : null; if(plan && !plan.lines.length) continue; }
+    const pk = ignorePick ? null : getPick(date, slot.meal);
+    const picked = !!pk && ((pk.hall && pk.hall===sp.hall) || (pk.spot && pk.spot===sp.name));
+    const fav = !pk && MY.favorites[wi+'|'+slot.meal]===sp.name;
+    const travel=w1+w2;
+    const score = (picked?-200:0) + (fav?-100:0) + travel + (sp.hall?0:6) + (sp.hall && !plan ? 4 : 0) + (!sp.hall && SET().vegan ? 6 : 0);
+    out.push({sp, w1, w2, at, eat:leave-at, plan, fav, picked, score, range});
+  }
+  return out.sort((a,b)=>a.score-b.score);
+}
+function pickFor(sp, meal){ const p=(SET().vegan ? sp.vegan : sp.picks)||{}; return p[meal]||p.any||null; }
+
+
+/* ===================== Daily picks (he chooses the headliner, the app builds the plate) ===================== */
+const NICE=[[/hamburger patty|beef burger crumble|beef patty/i,'Burger'],[/^halal grilled chicken$/i,'Grilled chicken (halal)'],[/gyro meat/i,'Gyro'],[/chicken thigh for stir fry/i,'Chicken stir-fry'],[/ for stir fry/i,' stir-fry'],[/^fast /i,''],[/^curated cravings /i,''],[/plain greek yogurt/i,'Greek yogurt'],[/hard boiled egg/i,'Hard-boiled eggs'],[/ filling$/i,'']];
+function niceName(n){ let x=n.trim(); for(const [rx,to] of NICE) x=x.replace(rx,to); return x.charAt(0).toUpperCase()+x.slice(1); }
+let PICKS={};
+function loadPicks(){ try{ PICKS=JSON.parse(localStorage.getItem('vdc-picks')||'{}')||{}; }catch(e){ PICKS={}; }
+  const keep=Object.keys(DATA.days); for(const d of Object.keys(PICKS)) if(!keep.includes(d)) delete PICKS[d]; }
+function savePicks(){ try{ localStorage.setItem('vdc-picks', JSON.stringify(PICKS)); }catch(e){} }
+function getPick(date, meal){ return (PICKS[date]||{})[meal]||null; }
+function setPick(date, meal, val){ PICKS[date]=PICKS[date]||{}; if(val) PICKS[date][meal]=val; else delete PICKS[date][meal]; savePicks(); }
+
+function daySlots(wi){
+  const {cl, slots}=mealSlots(wi);
+  if(cl.length) return {cl, slots};
+  const home=MY.buildings[MY.home];
+  return {cl, slots:[{meal:'Breakfast',start:9*60,end:11*60},{meal:'Lunch',start:11*60,end:14*60},{meal:'Dinner',start:16*60+30,end:20*60+30}]
+    .map(x=>({...x, from:home, fromName:homeName(), to:home, toName:homeName()}))};
+}
+const forcedCache=new Map();
+function forcedPlate(hall, date, meal, name){
+  const key=[hall,date,meal,name].join('|'); if(forcedCache.has(key)) return forcedCache.get(key);
+  const p=bestPlate(mealItems(hall,date,meal), meal, kindFor(date,meal), 'pick|'+key, new Set(), new Set(), new Set(), name);
+  forcedCache.set(key,p); return p;
+}
+function planFor(hall, date, meal){
+  const pk=getPick(date, meal);
+  if(pk && pk.hall===hall && pk.name){ const p=forcedPlate(hall,date,meal,pk.name); if(p && p.lines.length) return p; }
+  return mealPlan(hall, date, meal);
+}
+function choicesFor(slot, wi, date){
+  const kind=kindFor(date, slot.meal), role= kind==='treat' ? 'treat' : 'protein';
+  const opts=optionsFor(slot, wi, date, true).filter(o=>o.sp.hall && o.plan && o.plan.lines.length);
+  const pool=[];
+  for(const o of opts){
+    const items=mealItems(o.sp.hall, date, slot.meal); const seen=new Set();
+    for(const it of items){
+      const k=it.name.toLowerCase(); if(seen.has(k)) continue; seen.add(k);
+      const c={...it, role:classify(it)}; if(c.role!==role) continue;
+      if(role==='protein' && (c.cal>500 || (slot.meal!=='Breakfast' && /breakfast|scramble|yogurt|hard boiled|oatmeal/i.test(c.name)))) continue;
+      if(role==='treat' && (c.cal>750 || /cake|cookie|pie|brownie|bar$|s'?more|cinnamon/i.test(c.name) || (slot.meal!=='Breakfast' && /waffle|pancake|french toast|biscuit|donut/i.test(c.name)))) continue;
+      const appeal = scoreFor(role,c) + (FUN.test(c.name)?5:0) + (/burger|pizza|taco|wings|tender|fries|queso|nacho|bao|bowl|teriyaki|bbq|grill/i.test(c.name)?2:0)
+        - (role==='protein' && PROC.test(c.name)?10:0) - (o.w1+o.w2)/3 + (isLiked(c.name)?40:0);
+      pool.push({hall:o.sp.hall, spot:o.sp, w1:o.w1, w2:o.w2, name:it.name.trim(), appeal, fam:family(it.name), liked:isLiked(it.name)});
+    }
+  }
+  pool.sort((a,b)=>b.appeal-a.appeal);
+  const out=[], fams=new Set(), perHall={};
+  for(const c of pool){
+    if(out.length>=3) break;
+    if(fams.has(c.fam) || (perHall[c.hall]||0)>=2 || out.some(o=>niceName(o.name)===niceName(c.name))) continue;
+    const plate=forcedPlate(c.hall, date, slot.meal, c.name); if(!plate || !plate.lines.length) continue;
+    out.push({...c, plate, kind}); fams.add(c.fam); perHall[c.hall]=(perHall[c.hall]||0)+1;
+  }
+  const favName=MY.favorites[wi+'|'+slot.meal];
+  if(favName && (!SET().vegan || pickFor(SPOTS.find(x=>x.name===favName)||{}, slot.meal))){ const sp=SPOTS.find(x=>x.name===favName); const o=optionsFor(slot,wi,date,true).find(x=>x.sp.name===favName);
+    if(sp && o) out.unshift({hall:null, spot:sp, w1:o.w1, w2:o.w2, name:favName, restaurant:true, pick:pickFor(sp,slot.meal), kind}); }
+  return out.slice(0,3);
+}
+
+/* ===================== Rendering ===================== */
+const state={ hall:'day', date:null, pickOpen:false, menu:false };
+const el=(t,a={},...kids)=>{ const e=document.createElement(t); for(const [k,v] of Object.entries(a)){ if(k==='class') e.className=v; else if(k.startsWith('on')) e.addEventListener(k.slice(2),v); else if(v!==false&&v!=null) e.setAttribute(k,v===true?'':v); } for(const k of kids.flat()){ if(k==null||k===false) continue; e.append(k.nodeType?k:document.createTextNode(String(k))); } return e; };
+const r0=x=>Math.round(x);
+const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function todayStr(){ const d=new Date(); return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`; }
+function dayLabel(ds){ const [m,d]=ds.split('/').map(Number); return {dow:DOW[weekdayIdx(ds)], d}; }
+
+function renderDays(){
+  const box=document.getElementById('days'); box.textContent='';
+  const today=todayStr();
+  for(const ds of Object.keys(DATA.days)){
+    const {dow,d}=dayLabel(ds); const wi=weekdayIdx(ds);
+    const hasTreat=Object.keys(TREATS).some(k=>k.startsWith(wi+'|') && TREATS[k]==='treat');
+    box.append(el('button',{class:'day',id:'day-'+ds.replace(/\//g,''),'aria-pressed':String(ds===state.date),onclick:()=>{state.date=ds; save(); render();}, 'aria-label': `${dow} ${d}${hasTreat?', treat meal':''}`},
+      el('small',{}, ds===today?'Today':dow), el('b',{},d), hasTreat? el('span',{class:'dot','aria-hidden':'true'}):null));
+  }
+}
+
+function macroLine(p,c,f){ return [el('span',{class:'mp'},r0(p)+'P'),' · ',el('span',{class:'mc'},r0(c)+'C'),' · ',el('span',{class:'mf'},r0(f)+'F')]; }
+
+function renderMeal(hall, date, meal){
+  const pk=getPick(date,meal); const usePick = pk && pk.hall===hall && !SHUFFLE.get(hall+'|'+date+'|'+meal);
+  const plan= usePick ? planFor(hall,date,meal) : mealPlan(hall,date,meal); if(!plan) return null;
+  const k=plan.kind; const isTreat=k==='treat';
+  const whyList=WHY[k]||WHY.normal; const why=whyList[hashStr(hall+date+meal+(SHUFFLE.get(hall+'|'+date+'|'+meal)||0))%whyList.length];
+  const card=el('section',{class:'meal'+(isTreat?' is-treat':''),'aria-label':meal});
+  const tag = isTreat? el('span',{class:'pill treat'},'Treat meal') : k==='dessert'? el('span',{class:'pill treat'},'Dessert night') : null;
+  card.append(el('div',{class:'mhead'}, el('div',{}, el('h2',{},meal), el('div',{class:'tgt'},'Aim: '+plan.target.label)), tag));
+  if(!plan.lines.length){
+    card.append(el('p',{class:'empty'}, SET().vegan ? 'No vegan protein is listed for this meal here. Try another hall, or build a salad bar bowl with beans, chickpeas or tofu and lots of veggies.' : 'Only the salad bar is listed for this meal. Build a salad: greens, tofu or eggs, beans and lots of veggies, with dressing on the side. Or head to J2 or Kins for a full plate.'));
+    return card;
+  }
+  const likedHere=plan.lines.filter(l=>!l.synthetic && isLiked(l.name));
+  card.append(el('p',{class:'why'}, usePick? `Built around your pick: ${niceName(pk.name)}.` : likedHere.length? `Built around what you like: ${likedHere.map(l=>niceName(l.name)).join(', ')}.` : why));
+  const sodium=plan.lines.reduce((a,l)=>a+l.sod*l.qty,0);
+  card.append(el('p',{class:'why',style:'margin-top:-4px'}, 'Drink: water, unsweetened tea or '+(SET().vegan?'soy milk.':'low-fat milk.')+(sodium>1300?' Saltier meal, so have an extra glass of water.':'')));
+  const ul=el('ul',{class:'items'});
+  for(const l of plan.lines){
+    const roleName={protein:'Protein',veg:'Veggie',carb:'Smart carb',fruit:'Fruit',treat:'Treat',dessert:'Dessert',side:'Side',bread:'Side',other:'Side'}[l.role]||'Side';
+    ul.append(el('li',{class:'item'},
+      el('div',{class:'nm'}, el('span',{class:'role '+l.role},roleName), l.name, l.qty>1? el('span',{class:'qty'},' ×'+l.qty):null, (!l.synthetic && isLiked(l.name))? el('span',{class:'lk','aria-label':'one of your likes'},'♥'):null),
+      el('div',{class:'kc'}, r0(l.cal*l.qty)),
+      el('div',{class:'meta'}, (l.station||'')+' · '+l.serving+(l.qty>1?' ×'+l.qty:'')),
+      el('div',{class:'mac'}, macroLine(l.p*l.qty,l.c*l.qty,l.f*l.qty)),
+      l.synthetic? null : el('button',{class:'nope',id:'nope-'+l.id,'aria-label':`Not a fan of ${l.name}`,onclick:()=>nope(l.name)},'Not a fan')
+    ));
+  }
+  card.append(ul);
+  const t=plan.t; const kcalP=t.p*4, kcalC=t.c*4, kcalF=t.f*9, sum=kcalP+kcalC+kcalF||1;
+  card.append(el('div',{class:'total'},
+    el('div',{class:'big'}, r0(t.cal), el('small',{style:'font-size:12px;font-weight:600;margin-left:3px'},'cal')),
+    el('div',{class:'bar',role:'img','aria-label':`Protein ${r0(t.p)} grams, carbs ${r0(t.c)} grams, fat ${r0(t.f)} grams`},
+      el('span',{style:`width:${kcalP/sum*100}%;background:var(--p)`}), el('span',{style:`width:${kcalC/sum*100}%;background:var(--c)`}), el('span',{style:`width:${kcalF/sum*100}%;background:var(--f)`})),
+    el('div',{class:'mac'}, macroLine(t.p,t.c,t.f))));
+  card.append(el('div',{class:'mfoot'}, el('small',{}, `Fiber ${r0(t.fiber)}g · Sodium ${r0(plan.lines.reduce((a,l)=>a+l.sod*l.qty,0))}mg`),
+    el('button',{class:'btn',id:`shuffle-${meal}`,onclick:()=>{ const key=hall+'|'+date+'|'+meal; SHUFFLE.set(key,(SHUFFLE.get(key)||0)+1); render(); }},'Show another option')));
+  return card;
+}
+
+const TIPS_BASE=[
+  ['Walk it','Walking to class counts. Aim for 8,000–10,000 steps a day. Campus makes it easy.'],
+  ['Drink water','Soda, sweet tea and juice are the easiest calories to cut. Refill a water bottle before every class.'],
+  ['Late nights','Late-night snacking is where the extra calories sneak in. Plan it: fruit, Greek yogurt or a protein shake instead of a second dinner.'],
+  ['Sleep','Short sleep makes you hungrier the next day. Aim for 7–9 hours, even on weekends.'],
+  ['No skipping','Skipping breakfast usually means overeating at lunch. Even a quick protein and fruit counts.'],
+  ['Weigh in weekly','Once a week, same morning, same scale. Daily numbers bounce around and do not mean much.'],
+  ['Slow down','Put the fork down between bites. It takes about 20 minutes for your stomach to tell your brain you are full.'],
+  ['Get moving','Two or three sessions a week at Greg (Gregory Gym) speed things up and help keep muscle while you lose fat.']
+];
+function tips(){
+  const st=SET(), vg=st.vegan;
+  return TIPS_BASE.filter(([h])=> st.goal==='lose' || h!=='Weigh in weekly').map(([h,t])=>{
+    if(h==='Late nights') return [h, 'Late-night snacking is where the extra calories sneak in. Plan it: fruit, '+(vg?'soy yogurt, roasted chickpeas or a soy-milk shake':'Greek yogurt or a protein shake')+' instead of a second dinner.'];
+    if(h==='Get moving' && st.goal==='build') return [h,'Three or four strength sessions a week at Greg (Gregory Gym), and protein at every meal so the work turns into muscle.'];
+    if(h==='Get moving' && st.goal==='maintain') return [h,'Two or three workouts a week at Greg (Gregory Gym) help energy, sleep and focus.'];
+    return [h,t];
+  });
+}
+
+function renderHall(){
+  const main=document.getElementById('main'); main.textContent='';
+  const hall=state.hall, date=state.date;
+  if(!Object.keys(DATA.days).includes(todayStr())) main.append(el('div',{class:'stale',role:'status'}, `Heads up: these menus are from ${fmtUpdated()} and don't include today yet. They refresh every Saturday morning, so check back soon. Until then, use the same idea: protein first, half the plate veggies, a fist of carbs.`));
+  const range=hoursFor(hall,date); const isToday=date===todayStr(); const open=isToday && openNow(range,new Date());
+  const head=el('div',{class:'hours'}, el('span',{class:'h'}, hall.replace(' Dining','')+' · '+prettyHours(range)),
+    isToday ? el('span',{class:'pill'+(open?' open':'')}, open?'Open now':'Closed now') : null);
+  main.append(head);
+  const det=el('details',{class:'week'}, el('summary',{},'Hours this week'));
+  const grid=el('div',{class:'weektbl'});
+  const arr=(DATA.hours||{})[HOURS_KEY[hall]]||[];
+  DOW.forEach((d,i)=>{ const on=i===weekdayIdx(date); grid.append(el('span',{class:on?'on':''},d), el('span',{class:on?'on':''},prettyHours(arr[i]))); });
+  det.append(grid); main.append(det);
+  if(!/closed/i.test(range||'') && DATA.days[date] && DATA.days[date][hall] && Object.keys(DATA.days[date][hall]).length){
+    const n=menuLikedCount(hall,date);
+    main.append(el('button',{class:'menulink',id:'open-menu',onclick:()=>{ state.menu=true; render(); window.scrollTo(0,0); }},
+      el('span',{}, `Full ${hall.replace(' Dining','')} menu`, el('small',{}, n? `${n} of your likes ${n>1?'are':'is'} on it. Tap ♥ on anything else that sounds good.` : 'Tap ♥ on anything that sounds good. Your plates get built around it.')),
+      el('span',{class:'arr','aria-hidden':'true'},'›')));
+  }
+
+  const meals=el('div',{class:'meals'}); let any=false; const plans=[];
+  const closed=/closed/i.test(range||'');
+  if(closed){
+    const others=HALLS.filter(h=>h!==hall && !/closed/i.test(hoursFor(h,date)||'closed'));
+    meals.append(el('div',{class:'meal'}, el('p',{class:'empty'}, `${hall.replace(' Dining','')} is closed this day.`+(others.length?` Head to ${others.map(h=>h.replace(' Dining','')).join(' or ')} instead; tap the tab above for today's plate there.`:''))));
+    main.append(meals); main.append(footnote()); return;
+  }
+  for(const meal of ['Breakfast','Lunch','Dinner']){ const c=renderMeal(hall,date,meal); if(c){ meals.append(c); any=true; const p=mealPlan(hall,date,meal); if(p&&p.lines.length) plans.push(p); } }
+  if(!any){
+    const others=HALLS.filter(h=>h!==hall && DATA.days[date] && DATA.days[date][h] && Object.keys(DATA.days[date][h]).length);
+    meals.append(el('div',{class:'meal'}, el('p',{class:'empty'}, `${hall.replace(' Dining','')} has no menu posted for this day${/closed/i.test(range||'')?' (closed)':''}. `, others.length? 'Try '+others.map(h=>h.replace(' Dining','')).join(' or ')+'.':'' )));
+  }
+  main.append(meals);
+  if(plans.length){
+    const t=plans.reduce((a,p)=>({cal:a.cal+p.t.cal,p:a.p+p.t.p,c:a.c+p.t.c,f:a.f+p.t.f}),{cal:0,p:0,c:0,f:0});
+    main.append(el('div',{class:'daysum'}, el('h3',{},'If you eat all of this here'),
+      el('div',{class:'row'}, el('span',{},el('b',{},r0(t.cal)),' cal'), el('span',{},el('b',{},r0(t.p)),'g protein'), el('span',{},el('b',{},r0(t.c)),'g carbs'), el('span',{},el('b',{},r0(t.f)),'g fat')),
+      el('p',{}, dailyGuideText()+' Still hungry? Add a vegetable or more protein, not dessert.')));
+  }
+  const TL=tips(); const tip=TL[hashStr(date)%TL.length];
+  main.append(el('div',{class:'tip'}, el('b',{},'Coach tip · '+tip[0]), tip[1]));
+  main.append(footnote());
+}
+
+function footnote(){
+  return el('p',{class:'note'}, `Menus and nutrition come from UT Housing & Dining's public menu data (last refreshed ${fmtUpdated()}; refreshes every morning). Portions are the dining halls' standard servings. Menus can change at the station, so if something is missing, swap in something similar. This is an unofficial helper${MY.name?' made for '+MY.name:''}, not a UT app.`);
+}
+function fmtUpdated(){ const u=DATA.updated||''; const m=/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(u); if(!m) return u; const d=new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]); return d.toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+
+
+function nowMinutes(){ const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function nowCard(date){
+  if(date!==todayStr()) return null;
+  const wi=weekdayIdx(date), now=nowMinutes();
+  const {cl, slots}=mealSlots(wi);
+  let list=slots;
+  if(!cl.length){
+    const home=MY.buildings[MY.home];
+    list=[{meal:'Breakfast',start:9*60,end:11*60},{meal:'Lunch',start:11*60,end:14*60},{meal:'Dinner',start:16*60+30,end:20*60+30}]
+      .map(x=>({...x, from:home, fromName:homeName(), to:home, toName:homeName()}));
+  }
+  list=list.filter(s=>s.meal!=='Snack' || (now>=s.start && now<s.end));
+  let cur=list.find(s=>now>=s.start && now<s.end-15), label, sub;
+  if(cur){ label='Right now'; sub=`until ${fmt(cur.end)}`; cur={...cur, start:Math.max(cur.start, now)}; }
+  else { cur=list.find(s=>s.start>now); if(!cur) return el('div',{class:'tip'}, el('b',{},'Done for today'), 'No more meals planned. If you get hungry late, keep it light: fruit, '+(SET().vegan?'soy yogurt or a soy-milk shake.':'Greek yogurt or a protein shake.'));
+    const mins=cur.start-now; label='Next up'; sub= mins<60 ? `in ${mins} min` : `at ${fmt(cur.start)}`; }
+  const card=slotCard(cur, wi, date);
+  card.classList.add('now');
+  card.prepend(el('div',{class:'eyebrow'}, el('span',{},label), el('span',{},sub)));
+  const alts=card.querySelector('.alts'); if(alts) alts.remove();
+  return card;
+}
+
+function picksCard(date){
+  const wi=weekdayIdx(date); const isToday=date===todayStr(); const now=isToday? nowMinutes() : -1;
+  const {slots}=daySlots(wi);
+  const meals=slots.filter(s=>s.meal!=='Snack' && s.end-20>now && (s.meal!=='Breakfast' || MY.favorites[wi+'|Breakfast']));
+  if(!meals.length) return null;
+  const rows=meals.map(s=>({s, ch:choicesFor(s, wi, date)})).filter(x=>x.ch.length>=2);
+  if(!rows.length) return null;
+  const allPicked=rows.every(x=>getPick(date,x.s.meal));
+  const card=el('section',{class:'picks','aria-label':'Pick your meals'});
+  const head=el('div',{class:'pk-head'}, el('div',{}, el('h2',{}, isToday? "Pick today's meals" : `Plan ${dayLabel(date).dow}'s meals`),
+    el('p',{}, 'Tap what sounds good. The app adds sides to keep it balanced.')));
+  card.append(head);
+  if(allPicked && !state.pickOpen){
+    const ul=el('ul',{class:'pk-sum'});
+    for(const {s} of rows){ const pk=getPick(date,s.meal); ul.append(el('li',{}, el('b',{}, s.meal+': '), (pk.spot? pk.spot : niceName(pk.name))+' ', el('span',{}, '· '+(pk.hall? pk.hall.replace(' Dining',''): pk.spot||'')))); }
+    card.append(ul);
+    card.append(el('button',{class:'linkbtn',id:'pk-change',onclick:()=>{ state.pickOpen=true; render(); }},'Change picks'));
+    return card;
+  }
+  for(const {s, ch} of rows){
+    const kind=kindFor(date,s.meal); const pk=getPick(date,s.meal);
+    const grp=el('div',{class:'pk-meal',role:'radiogroup','aria-label':s.meal+' choices'});
+    grp.append(el('div',{class:'pk-label'}, el('b',{}, s.meal), ` · ${fmt(s.start)}–${fmt(s.end)}`, kind==='treat'? el('span',{class:'pill treat'},'Treat meal'):null));
+    const grid=el('div',{class:'pk-grid'});
+    for(const c of ch){
+      const sel = pk && ((c.hall && pk.hall===c.hall && pk.name===c.name) || (c.restaurant && pk.spot===c.spot.name));
+      const sub = c.restaurant ? (c.pick? `${c.pick.cal} cal · ${c.pick.p} protein` : 'Dine In Dollars') : `${r0(c.plate.t.cal)} cal · ${r0(c.plate.t.p)}g protein`;
+      const where = (c.restaurant? c.spot.name : c.hall.replace(' Dining','')) + ` · ${c.w1} min walk`;
+      grid.append(el('button',{class:'pk-opt'+(sel?' on':''),role:'radio','aria-checked':String(!!sel),id:`pk-${s.meal}-${hashStr(c.name+(c.hall||''))}`,
+        onclick:()=>{ setPick(date, s.meal, c.restaurant? {spot:c.spot.name, name:c.spot.name} : {hall:c.hall, name:c.name}); state.pickOpen=!rows.every(x=>getPick(date,x.s.meal)); render(); }},
+        el('span',{class:'pk-name'}, c.restaurant? `${c.spot.name.replace(' Cafe','')} breakfast` : niceName(c.name), c.liked? el('span',{class:'lk','aria-label':'one of your likes'},'♥'):null),
+        el('span',{class:'pk-with'}, c.restaurant? (c.pick? c.pick.text.split(/[.;]/)[0] : '') : 'with '+c.plate.lines.filter(l=>l.name!==c.name && l.role!=='side').slice(0,3).map(l=>niceName(l.name).toLowerCase()).join(', ')),
+        el('span',{class:'pk-where'}, where), el('span',{class:'pk-sub'}, sub)));
+    }
+    grp.append(grid);
+    grp.append(el('button',{class:'linkbtn pk-auto',onclick:()=>{ setPick(date,s.meal,null); render(); }}, pk? 'Clear pick (let the app choose)' : 'No preference: the app picks for you'));
+    card.append(grp);
+  }
+  if(allPicked) card.append(el('button',{class:'btn',onclick:()=>{ state.pickOpen=false; render(); }},'Done'));
+  return card;
+}
+
+function renderDay(){
+  const main=document.getElementById('main'); main.textContent='';
+  const date=state.date, wi=weekdayIdx(date);
+  const {cl, slots}=mealSlots(wi);
+  const {dow,d}=dayLabel(date);
+  main.append(el('div',{class:'hours'}, el('span',{class:'h'}, `${dow} ${d} · ${cl.length? cl.length+' class'+(cl.length>1?'es':'') : 'No classes'}`), el('span',{class:'pill'}, MY.term)));
+  const pc=picksCard(date); if(pc) main.append(pc);
+  const nc=nowCard(date); if(nc){ nc.style.marginTop='10px'; main.append(nc); if(cl.length) main.append(el('h3',{style:'margin:18px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)'},'Whole day')); }
+  if(!cl.length){
+    main.append(el('div',{class:'meal'}, el('p',{class:'empty'}, MY.classes.length ? 'No classes today. Open a dining hall tab for today\'s plates. Weekend hours are brunch 9am–2pm and dinner from 4:30pm.' : 'Add your class schedule on the Plan tab and this page will fit meals between your classes. Until then, open a dining hall tab for today\'s plates.')));
+    main.append(budgetCard()); main.append(footnote()); return;
+  }
+  const items=[...cl.map(c=>({t:c.s, c})), ...slots.map(s=>({t:s.start, s}))].sort((a,b)=>a.t-b.t || (a.s?-1:1));
+  const tl=el('div',{class:'tl'});
+  for(const it of items){
+    if(it.c){ const c=it.c; tl.append(el('div',{class:'cls'}, el('span',{class:'tm'}, fmt(c.s)+'–'+fmt(c.e)), el('span',{}, el('b',{},c.course), ' ', el('span',{class:'rm'}, `${c.bldg} ${c.room} · ${c.who}`)))); continue; }
+    tl.append(slotCard(it.s, wi, date));
+  }
+  main.append(tl);
+  main.append(budgetCard());
+  main.append(el('p',{class:'note'}, 'Walking times are estimates from building locations (about 80 meters a minute). Dining halls are covered by the meal plan; Dine In Dollars spots use your per-term balance.'));
+  main.append(footnote());
+}
+
+function slotCard(slot, wi, date){
+  const opts=optionsFor(slot, wi, date);
+  const kind = slot.meal==='Snack' ? 'snack' : kindFor(date, slot.meal);
+  const card=el('section',{class:'slot'+(kind==='treat'?' is-treat':''),'aria-label':slot.meal});
+  const tag = kind==='treat'? el('span',{class:'pill treat'},'Treat meal') : kind==='dessert'? el('span',{class:'pill treat'},'Dessert night') : null;
+  card.append(el('div',{class:'sh'}, el('h2',{}, slot.meal==='Snack'?(slot.start>=14*60?'Afternoon snack':'Snack stop (optional)'):slot.meal), tag));
+  card.append(el('div',{class:'win'}, slot.from===slot.to ? `${fmt(slot.start)}–${fmt(slot.end)} · from ${slot.fromName}` : slot.meal==='Breakfast' ? `${fmt(slot.start)}–${fmt(slot.end)} · before ${slot.toName}` : slot.to===MY.buildings[MY.home] ? `${fmt(slot.start)}–${fmt(slot.end)} · after ${slot.fromName}, on the way back to ${homeName()}` : `${fmt(slot.start)}–${fmt(slot.end)} · between ${slot.fromName} and ${slot.toName}`));
+  if(!opts.length){ card.append(el('p',{class:'empty'}, slot.meal==='Snack' ? 'Nothing open nearby in this gap. Keep a banana or protein bar in your bag.' : 'Nothing open fits this window. Grab something portable earlier: fruit, '+(SET().vegan?'nuts or a vegan protein bar.':'Greek yogurt or a protein bar.'))); return card; }
+  const best=opts[0];
+  card.append(optionBlock(best, slot, true, kind));
+  const alts=opts.slice(1).filter(o=>o.sp.name!==best.sp.name && !(o.sp.hall && best.sp.hall && o.sp.lat===best.sp.lat && o.sp.lon===best.sp.lon)).slice(0,2);
+  if(alts.length && slot.meal!=='Snack'){
+    const ul=el('ul',{});
+    for(const o of alts){
+      const pk = o.sp.hall ? (o.plan? `${r0(o.plan.t.cal)} cal · ${r0(o.plan.t.p)}g protein plate` : 'menu not posted yet') : (pickFor(o.sp,slot.meal)||{}).text;
+      ul.append(el('li',{}, el('b',{}, o.sp.name), ` · ${o.w1+o.w2} min walking total · `, o.sp.hall? 'meal plan' : 'Dine In Dollars', pk? ' — '+pk : ''));
+    }
+    card.append(el('div',{class:'alts'}, el('h3',{},'Also works'), ul));
+  }
+  return card;
+}
+
+function optionBlock(o, slot, isBest, kind){
+  const sp=o.sp; const blk=el('div',{class:'best'});
+  blk.append(el('div',{class:'pl'}, el('b',{}, sp.name),
+    sp.hall? el('span',{class:'pill mp'},'Meal plan') : el('span',{class:'pill dd'},'Dine In Dollars'),
+    o.picked? el('span',{class:'pill fav'},'Your pick') : o.fav? el('span',{class:'pill fav'},'Your go-to') : null));
+  const toWhat = (slot.to===slot.from && slot.meal!=='Breakfast') ? ` · ${o.w2} min back` : ` · ${o.w2} min to ${slot.toName.startsWith('back')?homeName():slot.toName}`;
+  blk.append(el('div',{class:'walk'}, `${o.w1} min walk from ${slot.fromName}${toWhat} · ${o.eat>75?'plenty of time to eat':'about '+o.eat+' min to eat'}`));
+  if(slot.meal==='Snack'){
+    blk.append(el('div',{class:'pick'}, SET().vegan ? 'Protein plus fruit: soy yogurt and a banana, roasted chickpeas or a handful of nuts and an apple, or a soy-milk protein shake. Stocking these in your room saves Dine In Dollars. Skip pastries and sweet coffee drinks.' : 'Protein plus fruit: Greek yogurt and a banana, string cheese and an apple, or a protein shake. Stocking these in your room saves Dine In Dollars. Skip pastries and sweet coffee drinks.'));
+    blk.append(el('div',{class:'est'}, 'About 150–300 cal'));
+    return blk;
+  }
+  if(sp.hall){
+    if(!o.plan){ blk.append(el('div',{class:'pick'}, 'This week\'s menu is not posted yet. Use the plate rule: protein first, half the plate veggies, a fist of carbs.')); return blk; }
+    const ul=el('ul',{class:'mini'});
+    for(const l of o.plan.lines) ul.append(el('li',{}, el('span',{}, l.name+(l.qty>1?' ×'+l.qty:''), (!l.synthetic && isLiked(l.name))? el('span',{class:'lk'},'♥'):null), el('span',{}, r0(l.cal*l.qty)+' cal')));
+    blk.append(ul);
+    blk.append(el('div',{class:'est'}, `Plate: ${r0(o.plan.t.cal)} cal · ${r0(o.plan.t.p)}g protein · ${r0(o.plan.t.c)}g carbs · ${r0(o.plan.t.f)}g fat  `,
+      el('button',{class:'linkbtn',onclick:()=>{ state.hall=sp.hall; save(); render(); window.scrollTo(0,0); }}, 'Full plate')));
+  } else {
+    const pk=pickFor(sp, slot.meal);
+    if(pk){ blk.append(el('div',{class:'pick'}, (kind==='treat'?'Treat meal, so order what you like. Healthier default: ':'Order: ')+pk.text)); blk.append(el('div',{class:'est'}, `${pk.estimate?'Estimated ':''}${pk.cal} cal · ${pk.p} protein`+(pk.estimate?' (estimate; no official nutrition posted)':' (from published nutrition)')+(pk.low?'. Lighter on protein than a dining hall plate, so add a protein snack later.':''))); }
+  }
+  return blk;
+}
+
+function budgetCard(){
+  if(!MY.dineInDollarsPerTerm) return el('div',{class:'budget'}, el('b',{},'Dine In Dollars'), el('div',{},'Add your per-term balance in Your setup on the Plan tab to see a weekly budget.'));
+  const weekly=Math.round(MY.dineInDollarsPerTerm/MY.termWeeks);
+  const favs=Object.values(MY.favorites).length, spot=MY.goTo&&MY.goTo.spot ? MY.goTo.spot.replace(/ Cafe$/,'') : '';
+  return el('div',{class:'budget'}, el('b',{}, `Dine In Dollars: about $${weekly} a week`),
+    el('div',{}, `$${MY.dineInDollarsPerTerm} per term over ~${MY.termWeeks} weeks. ${favs&&spot ? `Your ${favs} weekly ${spot} breakfast${favs>1?'s':''} use${favs>1?'':'s'} part of it, so dining halls` : 'Dining halls'} are the default and restaurants are for when they save real time or it's a treat meal. Dollars don't roll over, so use them up by the end of the term.`));
+}
+
+function nope(name){
+  NOPE.add(name.toLowerCase()); saveNope(); MEMO.clear(); forcedCache.clear(); render();
+  toast(`Got it. ${name} won't be suggested again on this phone.`);
+}
+function toast(msg){ const t=el('div',{class:'toast',role:'status'},msg); document.body.append(t); setTimeout(()=>t.remove(),3200); }
+
+function renderPlan(){
+  const main=document.getElementById('main'); main.textContent='';
+  const p=el('div',{class:'plan'});
+  p.append(settingsCard());
+  const st=SET(), vg=st.vegan, g=GOAL_DEF[st.goal]||GOAL_DEF.lose;
+  p.append(el('h2',{},'The game plan'+(vg?' (vegan)':'')));
+  p.append(el('p',{},goalLine(st.goal)));
+  const rules=el('div',{class:'rules'});
+  (vg ? [
+    ['Protein first','Every plate starts with tofu, tempeh, seitan, a plant-based "meat", beans or lentils. Aim for '+(25+g.pAdd)+'–'+(30+g.pAdd)+'g at lunch and dinner. It keeps you full longest.'],
+    ['Stack two proteins','Plant proteins are smaller per scoop, so pair two: a tofu dish plus beans, or a veggie patty plus edamame. The app adds a salad bar tofu, edamame or bean scoop when a plate comes up short.'],
+    ['Half the plate is vegetables','Roasted, steamed or grilled. Extra veggies are always allowed.'],
+    ['Carbs that pull double duty','Beans, lentils, chickpeas and quinoa count as carbs and protein. Pick them over plain pasta or fries when you can.'],
+    ['Three meals and a snack','About '+g.day+' calories a day. Do not skip meals, because that backfires by dinner.'],
+    ['Drink water or soy milk','Skip soda, sweet tea and juice. Soy milk is the one plant milk with real protein (about 7g a cup).'],
+    ['Watch the salt','Plant-based "meats", sauces and soups add up fast. Aim for under about 2,300mg of sodium a day; the app shows it on every plate.'],
+    ['B12 and iron','Vegans need a reliable B12 source, usually a supplement or fortified foods, and iron from beans, tofu and greens. Ask the dining dietitian or a doctor what fits you.']
+  ] : [
+    ['Protein first','Every plate starts with a protein (chicken, fish, tofu, eggs, lean beef). Aim for '+(30+g.pAdd)+'g or more at lunch and dinner. It keeps you full longest.'],
+    ['Half the plate is vegetables','Roasted, steamed or grilled. Extra veggies are always allowed.'],
+    ['A fist of smart carbs','Rice, quinoa, potatoes, beans or pasta fuel your brain for class.'+(st.goal==='build'?' Training days can take a bit more.':' Just one serving, not three.')],
+    ['Three meals and a snack','About '+g.day+' calories a day. Do not skip meals, because that backfires by dinner.'],
+    ['Drink water','Skip soda, sweet tea and juice. That alone can cut a few hundred calories a day.'],
+    ['Fish twice a week','Salmon, shrimp or fish fillets are lean protein plus healthy fats. The app leans toward them when they are on the menu.'],
+    ['Go easy on processed meat','Ham, deli meat, sausage and bacon are salty and processed. Fine at treat meals, not the everyday pick.'],
+    ['Watch the salt','Soups, glazes and deli meats add up fast. Aim for under about 2,300mg of sodium a day; the app shows it on every plate.']
+  ]).forEach(([h,t])=>rules.append(el('div',{class:'rule'}, el('h3',{},h), el('p',{},t))));
+  p.append(rules);
+  p.append(el('h2',{},'Treats are part of the plan'));
+  p.append(el('p',{}, (vg ? 'Five treat meals every week: vegan pizza, fries, tacos, whatever sounds good. The app still adds a protein so you are not hungry an hour later. Grab a dessert the hall marks vegan if you want one.'
+      : 'Five treat meals every week: pizza, burgers, queso'+(MY.dessert==='ice cream'?', and ice cream for dessert':'')+'.')+' Pick what you actually want and enjoy it. One plate, then back to normal next meal. No skipping meals to "make up" for it.'));
+  const wk=el('div',{class:'wk','aria-label':'Weekly treat schedule'});
+  const lab={1:'Treat lunch',2:'Treat dinner',4:'Treat dinner',5:'Treat brunch',6:'Treat dinner'};
+  DOW.forEach((d,i)=>wk.append(el('div',{class:lab[i]?'t':''}, el('div',{},el('b',{},d)), el('div',{}, lab[i]||'Regular'))));
+  p.append(wk);
+  p.append(el('h2',{},'Every week'));
+  p.append(el('ul',{}, tips().map(([h,t])=>el('li',{}, el('b',{},h+': '), t))));
+  p.append(el('h2',{},'Foods you skip'));
+  const skipBits=[];
+  if(MY.dislikesText) skipBits.push('Never suggested: '+MY.dislikesText.replace(/\s*[,;\n]+\s*/g,', ').replace(/,\s*$/,'')+'.');
+  if(!vg) skipBits.push(MY.dessert==='ice cream' ? 'Dessert on treat meals is ice cream.' : 'No dessert is added to treat meals.');
+  if(MY.likesRomaine) skipBits.push('Lunch and dinner add a romaine side salad from the Garden Bar when it\'s out.');
+  skipBits.push('Change these in Your setup above.');
+  p.append(el('p',{}, skipBits.join(' ')));
+  if(NOPE.size){
+    const ul=el('ul',{}); [...NOPE].sort().forEach(n=>ul.append(el('li',{}, n.replace(/\b\w/g,c=>c.toUpperCase())+' ', el('button',{class:'linkbtn',onclick:()=>{ NOPE.delete(n); saveNope(); MEMO.clear(); render(); }},'Bring back'))));
+    p.append(el('p',{},'You tapped "Not a fan" on:')); p.append(ul);
+  } else p.append(el('p',{},'Tap "Not a fan" under any dish on the J2, Kins or JCL tabs and it won\'t come up again.'));
+  p.append(el('h2',{},'Foods you like'));
+  const lk=likedList();
+  if(lk.length){
+    const ul=el('ul',{class:'likes'});
+    lk.forEach(x=>ul.append(el('li',{}, el('span',{}, el('span',{class:'lk'},'♥ '), niceName(x.name), x.hall? el('span',{style:'color:var(--muted);font-size:12px'},' · '+x.hall.replace(' Dining','')):null),
+      el('button',{class:'linkbtn',onclick:()=>toggleLike(x.name, x.hall)},'Remove'))));
+    p.append(el('p',{},'Plates are built around these first whenever they are on the menu. Add more from any hall\'s Full menu.'));
+    p.append(ul); p.append(syncNote());
+  } else p.append(el('p',{},'Nothing yet. Open a hall tab, tap Full menu, and heart what sounds good. Plates get built around those first.'));
+  p.append(el('h2',{},'Talk to a pro'));
+  p.append(el('p',{},'Students on a UT meal plan can book a free one-on-one session with a Housing & Dining registered dietitian. They can set numbers that fit you exactly. University Health Services nutrition: ', el('span',{class:'sel'},'512-475-8010'), '. And if food ever starts feeling stressful or all-consuming, say something to '+(MY.checkIn||'someone you trust')+' or a dietitian. That matters more than any number.'));
+  p.append(el('h2',{},'How the app picks'));
+  p.append(el('p',{},'Each day it reads the real menu for each dining hall and builds a plate around the best protein-to-calorie option'+(vg?' among dishes UT labels vegan':'')+', plus a veggie and a smart carb. It avoids repeating the same main dish two days in a row, and "Show another option" gives you a different plate from the same menu.'));
+  main.append(p); main.append(footnote());
+}
+
+/* ===================== Likes (shared when the page allows it, else this phone) ===================== */
+let LOCAL=new Map(), REMOTE=null, DB=null, DB_WRITE=null, MIGRATED=false; const WQ={};
+function likeKey(n){ return String(n).trim().toLowerCase(); }
+function likeId(k){ return k.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,120)||'item'; }
+function loadLikes(){ try{ const a=JSON.parse(localStorage.getItem('vdc-likes')||'[]'); LOCAL=new Map(a.filter(x=>x&&x.name).map(x=>[likeKey(x.name),x])); }catch(e){ LOCAL=new Map(); } LCACHE=null; }
+function saveLikes(){ try{ localStorage.setItem('vdc-likes', JSON.stringify([...LOCAL.values()])); }catch(e){} }
+function shared(){ return !!(REMOTE && DB_WRITE!==false); }
+let LCACHE=null;
+function likesMap(){ if(LCACHE) return LCACHE; if(shared()) return (LCACHE=REMOTE); const m=new Map(LOCAL); if(REMOTE) for(const [k,v] of REMOTE) if(!m.has(k)) m.set(k,v); return (LCACHE=m); }
+function isLiked(n){ return likesMap().has(likeKey(n)); }
+function likedList(){ return [...likesMap().values()].sort((a,b)=>String(b.at||'').localeCompare(String(a.at||''))); }
+function likesChanged(){ LCACHE=null; MEMO.clear(); forcedCache.clear(); render(); }
+function writeRemote(k, val){
+  if(!DB || DB_WRITE===false) return;
+  const id=likeId(k);
+  WQ[id]=(WQ[id]||Promise.resolve()).then(async()=>{
+    const ref=DB.collection('likes').doc(id);
+    try{ if(val) await ref.set(val); else await ref.delete(); }
+    catch(e){ if(e && (e.code==='invalid_argument' || e.code==='permission_denied')){ DB_WRITE=false; render(); } }
+  });
+}
+function toggleLike(name, hall){
+  const k=likeKey(name); const on=!isLiked(name);
+  if(!on && REMOTE && REMOTE.has(k) && !shared() && !LOCAL.has(k)){ toast('That one was added from another account, so it can only be removed there.'); return; }
+  LCACHE=null;
+  if(on){ const v={name:String(name).trim(), hall:hall||'', at:new Date().toISOString()}; LOCAL.set(k,v); NOPE.delete(k); saveNope(); if(shared()){ REMOTE.set(k,v); } writeRemote(k,v); }
+  else { LOCAL.delete(k); if(shared()) REMOTE.delete(k); writeRemote(k,null); }
+  LCACHE=null; saveLikes(); likesChanged();
+}
+function syncNote(){
+  const n=likedList().length;
+  if(shared()) return el('p',{class:'sync'}, `${n} like${n===1?'':'s'} saved to the shared list${MY.checkIn?', so '+MY.checkIn+' sees them too':''}.`);
+  const box=el('p',{class:'sync'}, `${n} like${n===1?'':'s'} saved on this phone. `);
+  if(n) box.append(el('button',{class:'linkbtn',onclick:shareLikes},MY.checkIn ? 'Send my list to '+MY.checkIn : 'Share my list'));
+  return box;
+}
+async function shareLikes(){
+  const text=whose()+" dining hall likes:\n"+likedList().map(x=>'- '+niceName(x.name)+(x.hall?' ('+x.hall.replace(' Dining','')+')':'')).join('\n');
+  try{ if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e && e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(text); toast('Copied. Paste it into a text'+(MY.checkIn?' to '+MY.checkIn:'')+'.'); }catch(e){ toast('Could not open sharing on this device.'); }
+}
+async function initSync(){
+  try{
+    if(typeof window==='undefined' || !window.claude || !window.claude.use) return;
+    const [db,user]=await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if(!db) return; DB=db;
+    if(user){ try{ const c=await user.can('data.write'); if(c===true||c===false) DB_WRITE=c; }catch(e){} }
+    db.doc('settings/main').onSnapshot(snap=>{ SET_SHARED = snap.exists ? (snap.data()||null) : null; settingsChanged(); }, ()=>{});
+    db.collection('likes').onSnapshot(snap=>{
+      const m=new Map();
+      for(const d of snap.docs){ const v=d.data(); if(v && typeof v.name==='string' && v.name.trim()) m.set(likeKey(v.name), {name:v.name.trim().slice(0,120), hall:typeof v.hall==='string'?v.hall.slice(0,40):'', at:typeof v.at==='string'?v.at:''}); }
+      REMOTE=m; LCACHE=null;
+      if(!MIGRATED && DB_WRITE===true){ MIGRATED=true; const missing=[...LOCAL].filter(([k])=>!m.has(k)); if(missing.length) setTimeout(()=>{ for(const [k,v] of missing){ REMOTE.set(k,v); writeRemote(k,v); } LCACHE=null; likesChanged(); },0); }
+      likesChanged();
+    }, ()=>{});
+  }catch(e){}
+}
+
+/* ===================== Full menu page ===================== */
+function menuItems(hall, date, meal){
+  const seen=new Set(), out=[];
+  for(const it of mealItems(hall,date,meal,menuVegan())){
+    const k=likeKey(it.name); if(seen.has(k)) continue; seen.add(k);
+    if(RX.skipStation.test(it.station)) continue;
+    if(!it.hasNutrition || it.cal<=0) continue;
+    if(RX.condiment.test(it.name.toLowerCase()) && !(it.p>=12)) continue;
+    if(/(chopped|crispy|crumbled) bacon|^bacon$|bacon bits/i.test(it.name)) continue;
+    out.push(it);
+  }
+  return out;
+}
+function menuLikedCount(hall,date){ const s=new Set(); for(const m of ['Breakfast','Lunch','Dinner']) for(const it of menuItems(hall,date,m)) if(isLiked(it.name)) s.add(likeKey(it.name)); return s.size; }
+function menuRow(it, hall, top, where){
+  const on=isLiked(it.name);
+  return el('button',{class:'mrow','aria-pressed':String(on),id:'like-'+(where?'x-':top?'top-':'')+it.id,
+      'aria-label':(on?'Remove ':'Like ')+it.name, onclick:()=>{ const y=window.scrollY; toggleLike(it.name, hall); window.scrollTo(0,y); }},
+    el('span',{class:'nm'}, it.name),
+    el('span',{class:'ht','aria-hidden':'true'}, on?'♥':'♡'),
+    el('span',{class:'meta'}, (where? where+' · ' : '')+`${r0(it.cal)} cal · ${r0(it.p)}g protein · ${it.serving}`));
+}
+function renderMenu(){
+  const main=document.getElementById('main'); main.textContent='';
+  const hall=state.hall, date=state.date, {dow,d}=dayLabel(date);
+  main.append(el('button',{class:'linkbtn back',id:'menu-back',onclick:()=>{ state.menu=false; state.q=''; state.menuVegan=null; render(); window.scrollTo(0,0); }},'‹ Back to plates'));
+  main.append(el('h2',{class:'mtitle'}, `${hall.replace(' Dining','')} menu · ${dow} ${d}`));
+  main.append(el('p',{class:'mintro'}, 'Tap ♥ on anything that sounds good. Your plates get built around your likes first, today and every time they come back on the menu.'));
+  main.append(syncNote());
+  const body=el('div',{id:'menu-body'});
+  const input=el('input',{type:'search',id:'menu-q',placeholder:'Search menus, e.g. salmon, tacos, pho',autocomplete:'off',enterkeyhint:'search','aria-label':'Search the menus'});
+  input.value=state.q||'';
+  input.addEventListener('input',()=>{ state.q=input.value; fillMenu(body); });
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') input.blur(); });
+  const vOn=menuVegan();
+  const vt=el('button',{class:'vtog',id:'menu-vegan','aria-pressed':String(vOn),title:'Show only vegan dishes on this menu',onclick:()=>{ state.menuVegan=!menuVegan(); const y=window.scrollY; render(); window.scrollTo(0,y); }}, vOn?'✓ Vegan only':'Vegan only');
+  main.append(el('div',{class:'msearch'}, input, vt));
+  main.append(body); fillMenu(body);
+  if(SET().vegan && !vOn) main.append(el('p',{class:'note'}, 'Showing every dish on this menu page. Vegan mode is still on for your plates.'));
+  if(vOn) main.append(el('p',{class:'note'}, 'Vegan only: just dishes UT labels vegan are listed. Labels come from the dining halls, so ask at the station if you are unsure.'));
+  main.append(el('p',{class:'note'}, 'Salad bar items, sauces and toppings are left off this list. Desserts and foods on your skip list can be liked but still stay out of everyday plates; ice cream is the treat-meal dessert.'));
+  const h=document.querySelector('header.top'); if(h) document.documentElement.style.setProperty('--hdr', h.offsetHeight+'px');
+}
+function qMatch(q){ const words=q.toLowerCase().split(/\s+/).filter(Boolean); return it=>{ const hay=(it.name+' '+(it.station||'')).toLowerCase(); return words.every(w=>hay.includes(w)); }; }
+function fillMenu(body){
+  body.textContent='';
+  const hall=state.hall, date=state.date, {dow,d}=dayLabel(date);
+  const q=(state.q||'').trim(); const ok=q? qMatch(q) : ()=>true;
+  const day=(DATA.days[date]||{})[hall]||{}; let any=false, shown=0;
+  for(const meal of ['Breakfast','Lunch','Dinner']){
+    if(!day[meal]) continue;
+    const all=menuItems(hall,date,meal); if(all.length) any=true;
+    const items=all.filter(ok); if(!items.length) continue; shown+=items.length;
+    const sec=el('section',{class:'msec','aria-label':meal+' menu'}, el('h2',{}, meal));
+    const liked=items.filter(it=>isLiked(it.name));
+    if(liked.length){ const g=el('div',{class:'mgroup fav'}, el('h3',{},'Your likes on this menu')); liked.forEach(it=>g.append(menuRow(it,hall,true))); sec.append(g); }
+    const by=new Map(); for(const it of items){ const st=it.station||'Other'; if(!by.has(st)) by.set(st,[]); by.get(st).push(it); }
+    for(const [st,list] of by){ const g=el('div',{class:'mgroup'}, el('h3',{}, st)); list.forEach(it=>g.append(menuRow(it,hall))); sec.append(g); }
+    body.append(sec);
+  }
+  if(!any){ body.append(el('p',{class:'empty'}, 'No menu posted for this day yet.')); }
+  if(!q) return;
+  if(!shown) body.prepend(el('p',{class:'empty'}, `Nothing matching "${q}" at ${hall.replace(' Dining','')} on ${dow} ${d}.`));
+  else body.prepend(el('p',{class:'mcount'}, `${shown} match${shown===1?'':'es'} at ${hall.replace(' Dining','')} on ${dow} ${d}`));
+  // the rest of the week, every hall: one row per dish, with where and when
+  const found=new Map();
+  for(const ds of Object.keys(DATA.days)) for(const h of HALLS){
+    if(ds===date && h===hall) continue;
+    for(const meal of ['Breakfast','Lunch','Dinner']){
+      if(!((DATA.days[ds]||{})[h]||{})[meal]) continue;
+      for(const it of menuItems(h,ds,meal)){ if(!ok(it)) continue; const k=likeKey(it.name);
+        if(!found.has(k)) found.set(k,{it, hall:h, where:[]});
+        const w=`${h.replace(' Dining','')} ${dayLabel(ds).dow} ${meal}`; const f=found.get(k); if(!f.where.includes(w)) f.where.push(w); }
+    }
+  }
+  if(found.size){
+    const list=[...found.values()].sort((a,b)=>a.it.name.localeCompare(b.it.name)).slice(0,40);
+    const g=el('div',{class:'mgroup'}, el('h3',{}, `Elsewhere this week (${found.size})`));
+    list.forEach(f=>g.append(menuRow(f.it, f.hall, false, f.where.slice(0,3).join(', ')+(f.where.length>3?` +${f.where.length-3} more`:''))));
+    body.append(el('section',{class:'msec','aria-label':'Matches elsewhere this week'}, g));
+    if(found.size>40) body.append(el('p',{class:'mcount'}, 'Showing the first 40. Add another word to narrow it down.'));
+  } else if(!shown) body.append(el('p',{class:'mcount'}, 'Not on any menu this week either. Try a shorter word.'));
+}
+
+/* ===================== Settings: vegan mode + optional daily targets ===================== */
+let SET_LOCAL=null, SET_SHARED=null, SCACHE=null, SETMSG=null;
+const SHARE={Breakfast:.25, Lunch:.35, Dinner:.35};
+const FIELDS=[['cal','Calories','e.g. 2200',1200,4500],['p','Protein (g)','e.g. 140',30,300],['c','Carbs (g)','e.g. 250',50,600],['f','Fat (g)','e.g. 70',20,250]];
+function cleanSet(o){
+  if(!o || typeof o!=='object') return null;
+  const out={vegan:o.vegan===true, goal: GOALS[o.goal]? o.goal : 'lose'};
+  const me=cleanMe(o.me); if(me) out.me=me;
+  for(const [k,,,lo,hi] of FIELDS){ const v=Number(o[k]); out[k]= (o[k]!==null && o[k]!=='' && isFinite(v) && v>=lo && v<=hi) ? Math.round(v) : null; }
+  return out;
+}
+const GOALS={lose:'Lose slowly', maintain:'Maintain and eat well', build:'Build muscle'};
+const str=(x,n)=> typeof x==='string' ? x.trim().slice(0,n) : '';
+function cleanMe(m){
+  if(!m || typeof m!=='object') return null;
+  const t=x=>/^\d{1,2}:\d{2}$/.test(x||'') ? x : null;
+  const classes=Array.isArray(m.classes) ? m.classes.slice(0,12).map(c=>c&&({course:str(c.course,20), who:str(c.who,30), room:str(c.room,12),
+      days:String(c.days||'').toUpperCase().replace(/[^MTWRF]/g,'').split('').filter((d,i,a)=>a.indexOf(d)===i).join(''),
+      start:t(c.start), end:t(c.end), bldg: BUILDINGS[c.bldg]? c.bldg : 'OTH'})).filter(c=>c && c.days && c.start && c.end) : ME_DEFAULT.classes;
+  const spot=str(m.goTo&&m.goTo.spot,40);
+  return { name:str(m.name,30), checkIn:str(m.checkIn,30), term:str(m.term,20), home: BUILDINGS[m.home]&&BUILDINGS[m.home].dorm? m.home : 'SJH', classes,
+    goTo: spot && SPOTS.some(x=>x.name===spot) ? {spot, days:String(m.goTo.days||'').replace(/[^MTWRF]/g,'')} : null,
+    dislikes:str(m.dislikes,300), romaine: m.romaine!==false, dessert: m.dessert==='none'?'none':'ice cream',
+    dineIn: Math.max(0, Math.min(5000, Math.round(Number(m.dineIn)||0))) };
+}
+function loadSettings(){ try{ SET_LOCAL=JSON.parse(localStorage.getItem('vdc-settings')||'null'); }catch(e){ SET_LOCAL=null; } SCACHE=null; }
+function SET(){ if(SCACHE) return SCACHE; return (SCACHE = cleanSet(SET_LOCAL) || cleanSet(SET_SHARED) || {vegan:false,goal:'lose',cal:null,p:null,c:null,f:null}); }
+function settingsChanged(){ SCACHE=null; applyMe(); MEMO.clear(); forcedCache.clear(); if(DATA) render(); }
+function macroCal(st){ return (st.p && st.c && st.f) ? st.p*4+st.c*4+st.f*9 : null; }
+function dailyCal(st){ return macroCal(st) || st.cal || null; } // when all three macros are set, they decide the calories
+const nf=n=>Math.round(n).toLocaleString('en-US');
+const r5=x=>Math.round(x/5)*5, r50=x=>Math.round(x/50)*50;
+const GOAL_DEF={ lose:{k:1, pAdd:0, day:'2,000–2,400', pDay:110}, maintain:{k:1.12, pAdd:0, day:'2,300–2,700', pDay:110}, build:{k:1.22, pAdd:5, day:'2,500–2,900', pDay:140} };
+function mealTarget(meal, kind){
+  const st=SET(), sh=SHARE[meal]||.35, base=TARGETS[meal]||TARGETS.Lunch, cal=dailyCal(st);
+  const g=GOAL_DEF[st.goal]||GOAL_DEF.lose;
+  const p = st.p ? Math.round(st.p*sh) : (meal==='Breakfast'?25:30)+g.pAdd;
+  const c = st.c ? Math.round(st.c*sh) : null, f = st.f ? Math.round(st.f*sh) : null;
+  let min, max;
+  if(cal){ const m=cal*sh; if(kind==='treat'){ min=Math.round(m); max=Math.round(m*1.4); } else { min=Math.round(m*.88); max=Math.round(m*1.12); } }
+  else if(kind==='treat'){ min=r50(TARGETS.Treat.min*g.k); max=r50(TARGETS.Treat.max*g.k); }
+  else { min=r50(base.min*g.k); max=r50(base.max*g.k); }
+  let label;
+  if(kind==='treat' && !cal && !st.p) label='up to ~'+nf(max)+' cal · still get protein';
+  else { const parts=[(kind==='treat'?'up to ~'+nf(max):nf(min)+'–'+nf(max))+' cal', p+'g+ protein']; if(c) parts.push('~'+c+'g carbs'); if(f) parts.push('~'+f+'g fat'); label=parts.join(' · '); }
+  return {min, max, p, c, f, label};
+}
+function dailyGuideText(){
+  const st=SET(), cal=dailyCal(st);
+  const g=GOAL_DEF[st.goal]||GOAL_DEF.lose;
+  if(!cal && !st.p && !st.c && !st.f) return `Daily guide: about ${g.day} calories and ${g.pDay}g+ protein, including one snack.`;
+  const parts=[]; parts.push(cal? `about ${nf(cal)} calories` : `about ${g.day} calories`); parts.push(st.p? `${st.p}g protein` : g.pDay+'g+ protein'); if(st.c) parts.push(`${st.c}g carbs`); if(st.f) parts.push(`${st.f}g fat`);
+  return 'Your daily targets: '+parts.join(', ')+', including one snack.';
+}
+function setWritable(){ return !!(DB && REMOTE && DB_WRITE!==false); }
+async function saveSettings(obj, msg){
+  const clean=cleanSet(obj); SETMSG=msg||null;
+  if(setWritable()){
+    try{ await DB.doc('settings/main').set({...clean, at:new Date().toISOString()}); SET_SHARED=clean; SET_LOCAL=null; try{ localStorage.removeItem('vdc-settings'); }catch(e){} settingsChanged(); return; }
+    catch(e){ if(e && (e.code==='invalid_argument' || e.code==='permission_denied')) DB_WRITE=false; }
+  }
+  SET_LOCAL=clean; try{ localStorage.setItem('vdc-settings', JSON.stringify(clean)); }catch(e){}
+  settingsChanged();
+}
+/* About you: kept on this device only (never in the shared data), used to suggest targets */
+const ACTS=[[1.3,'Mostly sitting, little walking'],[1.45,'Walks around campus every day'],[1.6,'Walks + works out 3–4 times a week'],[1.75,'Very active: sports or daily training']];
+let PROFILE=null;
+function loadProfile(){ try{ PROFILE=JSON.parse(localStorage.getItem('vdc-profile')||'null'); }catch(e){ PROFILE=null; } }
+function saveProfile(p){ PROFILE=p; try{ localStorage.setItem('vdc-profile', JSON.stringify(p)); }catch(e){} }
+function calcTargets(pr, goal){
+  const kg=pr.lb*0.4536, cm=pr.htIn*2.54, male=pr.sex==='m';
+  const bmr=10*kg+6.25*cm-5*pr.age+(male?5: pr.sex==='f'? -161 : -78);
+  const tdee=bmr*pr.act, floor=calFloor(pr.sex), bmi=kg/((cm/100)**2);
+  const deficit = goal!=='lose' || bmi<18.5 ? 0 : bmi<23 ? 250 : 450;
+  const surplus = goal==='build' && bmi<30 ? 250 : 0;
+  let cal=r50(deficit ? Math.max(tdee-deficit, Math.min(floor, tdee-150)) : tdee+surplus);
+  let p=r5(Math.min(goal==='build'?200:190, Math.max(80, pr.lb*(goal==='build'?0.9:0.8))));
+  let f=r5(Math.max(cal*0.28/9, pr.lb*0.3));
+  let c=r5((cal-p*4-f*9)/4);
+  if(c<130){ c=130; f=r5(Math.max(pr.lb*0.25, (cal-p*4-c*4)/9)); }
+  cal=p*4+c*4+f*9;
+  return {tdee:Math.round(tdee), cal, p, c, f, bmi, deficit, surplus};
+}
+function calFloor(sex){ return sex==='m' ? 1800 : sex==='f' ? 1500 : 1650; }
+function goalLine(goal){
+  return goal==='maintain' ? 'Keep your weight steady, feel good and have energy for class. No dieting, just balanced plates.'
+    : goal==='build' ? 'Build muscle with plenty of protein and enough food to recover from workouts. Pair this with 3–4 strength sessions a week.'
+    : 'Lose about half a pound to a pound a week, feel good doing it, and never feel like you are "on a diet." Slow loss stays off. Crash diets come right back.';
+}
+function profileBlock(card){
+  const pr=PROFILE||{};
+  card.append(el('h3',{},'About you'));
+  card.append(el('p',{class:'hint'},'Fill these in and the app works out daily targets for your goal. They stay on this phone only.'));
+  const g=el('div',{class:'profgrid'});
+  const sex=el('select',{id:'pf-sex'}, el('option',{value:''},'Choose'), el('option',{value:'m'},'Male'), el('option',{value:'f'},'Female'), el('option',{value:'x'},'Other / prefer not to say')); sex.value=pr.sex||'';
+  const age=el('input',{type:'number',inputmode:'numeric',id:'pf-age',min:14,max:80,placeholder:'e.g. 19'}); age.value=pr.age||'';
+  const ft=el('input',{type:'number',inputmode:'numeric',id:'pf-ft',min:4,max:7,placeholder:'ft','aria-label':'Height, feet'}); const inch=el('input',{type:'number',inputmode:'numeric',id:'pf-in',min:0,max:11,placeholder:'in','aria-label':'Height, inches'});
+  if(pr.htIn){ ft.value=Math.floor(pr.htIn/12); inch.value=pr.htIn%12; }
+  const lb=el('input',{type:'number',inputmode:'numeric',id:'pf-lb',min:80,max:450,placeholder:'e.g. 200'}); lb.value=pr.lb||'';
+  const act=el('select',{id:'pf-act'}, ...ACTS.map(([v,t])=>el('option',{value:String(v)},t))); act.value=String(pr.act||1.45);
+  g.append(el('label',{for:'pf-sex'},'Sex',sex), el('label',{for:'pf-age'},'Age',age),
+    el('label',{}, 'Height', el('div',{class:'ht'}, ft, inch)), el('label',{for:'pf-lb'},'Weight (lb)',lb),
+    el('label',{for:'pf-act',class:'wide'},'Activity',act));
+  card.append(g);
+  const out=el('p',{class:'setmsg',role:'status'});
+  const go=el('button',{class:'btn primary',id:'pf-go',onclick:()=>{
+    const v={sex:sex.value, age:Number(age.value), htIn:Number(ft.value)*12+Number(inch.value||0), lb:Number(lb.value), act:Number(act.value)};
+    const bad=[];
+    if(!v.sex) bad.push('Choose an option for sex (it changes the calorie estimate)');
+    if(!(v.age>=14 && v.age<=80)) bad.push('Age should be between 14 and 80');
+    if(!(Number(ft.value)>=4 && Number(ft.value)<=7) || !(Number(inch.value||0)>=0 && Number(inch.value||0)<=11)) bad.push('Height should be feet (4–7) and inches (0–11)');
+    if(!(v.lb>=80 && v.lb<=450)) bad.push('Weight should be between 80 and 450 lb');
+    if(bad.length){ out.className='setmsg err'; out.textContent=bad.join('. ')+'.'; return; }
+    v.age=Math.round(v.age); v.htIn=Math.round(v.htIn); v.lb=Math.round(v.lb);
+    saveProfile(v); const gl=SET().goal; const t=calcTargets(v, gl);
+    const goal = gl==='maintain' ? 'To maintain your weight' : gl==='build' ? (t.surplus ? 'To build muscle with a small surplus' : 'To build muscle at maintenance calories') : !t.deficit ? 'Your weight is already on the low side for your height, so these targets are for maintaining, not losing. Worth a chat with the dining dietitian before cutting back' : t.deficit<400 ? 'You are already in a healthy range, so this is a gentle cut of about ½ lb a week' : 'To lose about ½ to 1 lb a week';
+    SETMSG=`You burn about ${nf(t.tdee)} calories a day. ${goal}: ${nf(t.cal)} calories, ${t.p}g protein, ${t.c}g carbs, ${t.f}g fat. Change any of them below if you like.`;
+    saveSettings({...SET(), cal:t.cal, p:t.p, c:t.c, f:t.f}, SETMSG); toast('Targets set from your profile.');
+  }}, PROFILE? 'Update my targets' : 'Set my targets');
+  card.append(el('div',{class:'setbtns'}, go)); card.append(out);
+}
+function setupBlock(){
+  const me=MY; const det=el('details',{class:'setup',id:'setup'}); if(state.setupOpen) det.open=true;
+  det.addEventListener('toggle',()=>{ state.setupOpen=det.open; });
+  det.append(el('summary',{}, el('b',{},'Your setup'), el('small',{}, ` ${me.name||'Name not set'} · ${me.classes.length} class${me.classes.length===1?'':'es'} · ${homeName()}`)));
+  const inp=(id,val,ph,extra={})=>{ const i=el('input',{id, type:'text', placeholder:ph, ...extra}); i.value=val==null?'':val; return i; };
+  const name=inp('su-name',me.name,'e.g. Alex',{maxlength:30}), who=inp('su-check',me.checkIn,'e.g. Mom or Dad (optional)',{maxlength:30});
+  const term=inp('su-term',me.term,'e.g. Spring 2027',{maxlength:20});
+  const home=el('select',{id:'su-home'}, ...Object.entries(BUILDINGS).filter(([,b])=>b.dorm).map(([k,b])=>el('option',{value:k},b.name))); home.value=MY.home;
+  const dis=el('textarea',{id:'su-dis',rows:2,maxlength:300,placeholder:'e.g. stews, cabbage, mushrooms'}); dis.value=me.dislikesText;
+  const rom=el('input',{type:'checkbox',id:'su-rom'}); rom.checked=me.likesRomaine;
+  const des=el('select',{id:'su-des'}, el('option',{value:'ice cream'},'Ice cream'), el('option',{value:'none'},'No dessert')); des.value=me.dessert;
+  const dd=el('input',{type:'number',id:'su-dd',inputmode:'numeric',min:0,max:5000,placeholder:'400'}); dd.value=me.dineInDollarsPerTerm||'';
+  const go=el('select',{id:'su-go'}, el('option',{value:''},'None'), ...SPOTS.filter(x=>!x.hall && x.picks && (x.picks.Breakfast||x.picks.any)).map(x=>el('option',{value:x.name},x.name))); go.value=(me.goTo&&me.goTo.spot)||'';
+  const dayBoxes=(prefix,val)=>{ const box=el('div',{class:'dbox'}); ['M','T','W','R','F'].forEach((d,i)=>{ const c=el('input',{type:'checkbox',id:prefix+d,'data-d':d}); c.checked=String(val||'').includes(d); box.append(el('label',{for:prefix+d}, c, ['Mon','Tue','Wed','Thu','Fri'][i])); }); return box; };
+  const goDays=dayBoxes('su-god-', me.goTo&&me.goTo.days);
+  const readDays=box=>[...box.querySelectorAll('input')].filter(c=>c.checked).map(c=>c.dataset.d).join('');
+  const g=el('div',{class:'profgrid'});
+  g.append(el('label',{for:'su-name'},'Name',name), el('label',{for:'su-check'},'Who checks in',who),
+    el('label',{for:'su-home'},'Dorm',home), el('label',{for:'su-term'},'Term',term),
+    el('label',{for:'su-dd'},'Dine In Dollars per term ($)',dd), el('label',{for:'su-des'},'Treat-meal dessert',des),
+    el('label',{for:'su-dis',class:'wide'},'Foods to never suggest (commas between)',dis),
+    el('label',{for:'su-go',class:'wide'},'Go-to breakfast spot',go), el('div',{class:'wide'}, el('small',{class:'hint'},'On these days:'), goDays));
+  det.append(g);
+  det.append(el('label',{class:'swrow',for:'su-rom'}, el('span',{}, el('b',{},'Add a romaine side salad'), el('small',{},'From the Garden Bar at lunch and dinner when it\'s out.')), rom));
+  // class schedule
+  det.append(el('h3',{},'Class schedule'));
+  det.append(el('p',{class:'hint'},'Meals on the My day tab are fitted between these. Buildings not on the list count as about an 8-minute walk.'));
+  const rows=el('div',{class:'classes'});
+  const bopts=()=>Object.entries(BUILDINGS).filter(([,b])=>!b.dorm).map(([k,b])=>el('option',{value:k},b.name));
+  const addRow=(c={})=>{
+    const n=rows.children.length; const id='cl'+n+'-';
+    const row=el('fieldset',{class:'clrow'}, el('legend',{},'Class'));
+    const course=inp(id+'c',c.course,'Course, e.g. CH 301',{maxlength:20,'aria-label':'Course'});
+    const st=el('input',{type:'time',id:id+'s','aria-label':'Starts',value:c.start? c.start.padStart(5,'0'):''}), en=el('input',{type:'time',id:id+'e','aria-label':'Ends',value:c.end? c.end.padStart(5,'0'):''});
+    const b=el('select',{id:id+'b','aria-label':'Building'}, ...bopts()); b.value=c.bldg||'OTH';
+    const room=inp(id+'r',c.room,'Room',{maxlength:12,'aria-label':'Room'}), wh=inp(id+'w',c.who,'Instructor',{maxlength:30,'aria-label':'Instructor'});
+    const days=dayBoxes(id+'d-', c.days);
+    const del=el('button',{class:'linkbtn',type:'button',onclick:()=>row.remove()},'Remove');
+    row.append(el('div',{class:'clgrid'}, course, b, el('span',{class:'tm2'}, st, '–', en), room, wh), days, del);
+    row._read=()=>({course:course.value, start:st.value.replace(/^0(\d)/,'$1'), end:en.value.replace(/^0(\d)/,'$1'), bldg:b.value, room:room.value, who:wh.value, days:readDays(days)});
+    rows.append(row);
+  };
+  me.classes.forEach(addRow);
+  det.append(rows);
+  det.append(el('button',{class:'btn',type:'button',id:'su-add',onclick:()=>addRow()},'+ Add a class'));
+  const msg=el('p',{class:'setmsg',role:'status'});
+  const save=el('button',{class:'btn primary',type:'button',id:'su-save',onclick:()=>{
+    const cls=[...rows.children].map(r=>r._read()).filter(c=>c.course||c.start||c.end);
+    const bad=cls.filter(c=>!c.start||!c.end||!c.days||hm(c.end)<=hm(c.start));
+    if(bad.length){ msg.className='setmsg err'; msg.textContent='Each class needs a start time, a later end time and at least one day.'; return; }
+    state.setupOpen=true;
+    saveSettings({...SET(), me:{name:name.value, checkIn:who.value, term:term.value, home:home.value, classes:cls, goTo: go.value? {spot:go.value, days:readDays(goDays)} : null,
+      dislikes:dis.value, romaine:rom.checked, dessert:des.value, dineIn:dd.value}});
+    toast('Setup saved. Plates and My day updated.');
+  }},'Save setup');
+  const reset=el('button',{class:'btn',type:'button',id:'su-reset',onclick:()=>{ const st={...SET()}; delete st.me; saveSettings(st); toast('Setup reset to the original.'); }},'Reset');
+  det.append(el('div',{class:'setbtns'}, save, reset), msg);
+  return det;
+}
+function settingsCard(){
+  const st=SET(); const card=el('section',{class:'settings','aria-label':'Your settings'});
+  card.append(el('h2',{},'Your settings'));
+  const vg=el('input',{type:'checkbox',id:'set-vegan'}); vg.checked=st.vegan;
+  vg.addEventListener('change',()=>{ saveSettings({...SET(), vegan:vg.checked}); toast(vg.checked?'Vegan mode on. Plates and menus show vegan dishes only.':'Vegan mode off.'); });
+  card.append(el('label',{class:'swrow',for:'set-vegan'}, el('span',{}, el('b',{},'Vegan mode'), el('small',{},'Only dishes UT labels vegan show up in plates and menus, topped up with salad bar tofu, edamame or beans when a plate is short on protein. Restaurants show vegan orders.')), vg));
+  const gsel=el('select',{id:'set-goal'}, ...Object.entries(GOALS).map(([k,v])=>el('option',{value:k},v))); gsel.value=st.goal||'lose';
+  gsel.addEventListener('change',()=>{ saveSettings({...SET(), goal:gsel.value}, PROFILE? 'Goal changed. Tap "Update my targets" below to recalculate your numbers.' : null); toast('Goal: '+GOALS[gsel.value]+'.'); });
+  card.append(el('label',{class:'swrow',for:'set-goal'}, el('span',{}, el('b',{},'Goal'), el('small',{},'Changes portion sizes, protein and the game plan.')), gsel));
+  card.append(setupBlock());
+  profileBlock(card);
+  card.append(el('h3',{},'Daily targets (optional)'));
+  card.append(el('p',{class:'hint'},'Fill in any you want; leave the rest blank to use the default plan. Plates split them about 25% breakfast, 35% lunch and 35% dinner, with a little left for a snack.'));
+  const grid=el('div',{class:'macgrid'}); const inputs={};
+  for(const [k,lab,ph,lo,hi] of FIELDS){ const i=el('input',{type:'number',inputmode:'numeric',id:'set-'+k,min:lo,max:hi,step:'1',placeholder:ph}); i.value= st[k]!=null? st[k] : ''; inputs[k]=i; grid.append(el('label',{for:'set-'+k}, lab, i)); }
+  card.append(grid);
+  const mc=macroCal(st);
+  if(st.cal && mc && Math.abs(mc-st.cal)/st.cal>0.1){
+    const fatFor=Math.round((st.cal-st.p*4-st.c*4)/9);
+    card.append(el('p',{class:'setmsg err'}, `These don't add up: ${st.p}g protein, ${st.c}g carbs and ${st.f}g fat come to about ${nf(mc)} calories, not ${nf(st.cal)}. Plates follow the macros, so they aim for about ${nf(mc)} a day.`+(fatFor>0 && fatFor<=250 ? ` To eat ${nf(st.cal)} with the same protein and carbs, fat would be about ${fatFor}g.` : '')));
+  }
+  const msg=el('p',{class:'setmsg',role:'status'});
+  const save=el('button',{class:'btn primary',id:'set-save',onclick:()=>{
+    const o={...SET()}; const bad=[];
+    for(const [k,lab,,lo,hi] of FIELDS){ const raw=inputs[k].value.trim(); if(!raw){ o[k]=null; continue; } const v=Number(raw); if(!isFinite(v)||v<lo||v>hi){ bad.push(`${lab.replace(' (g)','')} should be between ${nf(lo)} and ${nf(hi)}`); } o[k]=v; }
+    if(bad.length){ msg.className='setmsg err'; msg.textContent=bad.join('. ')+'.'; return; }
+    const notes=[]; const c=o.cal, k=(o.p&&o.c&&o.f)? o.p*4+o.c*4+o.f*9 : null;
+    if(c && c<calFloor(PROFILE&&PROFILE.sex)) notes.push('That is low for most college students. Worth checking with the dining dietitian.');
+    saveSettings(o, notes.join(' ')||null); toast('Targets saved. Plates updated.');
+  }},'Save targets');
+  const clear=el('button',{class:'btn',id:'set-clear',onclick:()=>{ saveSettings({...SET(), cal:null,p:null,c:null,f:null}); toast('Back to the default plan.'); }},'Use default plan');
+  card.append(el('div',{class:'setbtns'}, save, clear));
+  const where = setWritable() ? 'Saved to the shared page, so it applies on every phone.' : 'Saved on this phone.';
+  msg.textContent=(SETMSG? SETMSG+' ' : '')+((st.vegan||dailyCal(st)||st.p||st.c||st.f)? where : '');
+  card.append(msg);
+  return card;
+}
+function renderModeBar(){
+  let m=document.getElementById('mode');
+  if(!m){ m=el('div',{id:'mode',class:'modebar'}); const b=document.querySelector('.brand'); if(!b) return; b.after(m); }
+  m.textContent=''; const st=SET(); const go=()=>{ state.hall='plan'; state.menu=false; save(); render(); window.scrollTo(0,0); };
+  if(st.vegan) m.append(el('button',{id:'mode-vegan',onclick:go},'Vegan mode'));
+  if(dailyCal(st)||st.p||st.c||st.f) m.append(el('button',{id:'mode-targets',onclick:go}, 'Custom targets'+(dailyCal(st)?' · '+nf(dailyCal(st))+' cal':'')+(st.p?' · '+st.p+'g P':'')));
+  if(!m.childNodes.length) m.append(el('button',{id:'mode-settings',onclick:go},'⚙ Macros & vegan mode'));
+}
+
+function render(){
+  const ttl=document.getElementById('apptitle'); if(ttl) ttl.textContent = MY.name ? `${MY.name}'s Dining Coach` : 'Dining Coach';
+  renderModeBar();
+  renderDays();
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.tab===state.hall)));
+  if(state.hall==='plan') renderPlan(); else if(state.hall==='day') renderDay(); else if(state.menu) renderMenu(); else renderHall();
+}
+function save(){ try{ localStorage.setItem('vdc-hall',state.hall); }catch(e){} }
+
+function importSetupLink(){
+  try{
+    const h=location.hash||''; if(!h.startsWith('#setup=')) return;
+    const b=h.slice(7).replace(/-/g,'+').replace(/_/g,'/');
+    const txt=decodeURIComponent(escape(atob(b + '==='.slice((b.length+3)%4))));
+    const o=JSON.parse(txt);
+    const clean=cleanSet(o.s); if(clean) localStorage.setItem('vdc-settings', JSON.stringify(clean));
+    if(Array.isArray(o.l)) localStorage.setItem('vdc-likes', JSON.stringify(o.l.filter(x=>x&&typeof x.name==='string').slice(0,500)));
+    history.replaceState(null,'',location.pathname+location.search);
+    setTimeout(()=>toast('Your setup is loaded on this phone.'),400);
+  }catch(e){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){} }
+}
+async function boot(){
+  importSetupLink();
+  try{
+    const res=await fetch('menu.json',{cache:'no-cache'}); DATA=await res.json();
+  }catch(e){ document.getElementById('main').innerHTML=''; document.getElementById('main').append(el('p',{class:'empty'},'Menus could not load. Check your connection and reopen the page.')); return; }
+  const dates=Object.keys(DATA.days); const t=todayStr();
+  state.date = dates.includes(t) ? t : dates.find(d=>new Date(d)>=new Date(t)) || dates[dates.length-1];
+  loadNope(); loadPicks(); loadLikes(); loadSettings(); loadProfile(); applyMe();
+  try{ const h=localStorage.getItem('vdc-hall'); if(h && (HALLS.includes(h)||h==='plan'||h==='day')) state.hall=h; }catch(e){}
+  const fresh=document.getElementById('fresh');
+  fresh.textContent = dates.includes(t) ? `Menus through ${dayLabel(dates[dates.length-1]).dow} ${dayLabel(dates[dates.length-1]).d}` : 'Menus are out of date';
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{ state.hall=b.dataset.tab; state.menu=false; state.menuVegan=null; save(); render(); }));
+  render();
+  initSync();
+}
+if(typeof document!=='undefined' && document.getElementById('main')) boot();
+if(typeof navigator!=='undefined' && 'serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if(typeof module!=='undefined') module.exports={choicesFor,daySlots,forcedPlate,planFor,setPick,getPick,nowCard,mealSlots,optionsFor,classesOn,walkMin,fmt,classify,buildPlate,dayPlan,mealPlan,setData:d=>{DATA=d;MEMO.clear();},itemFrom,openNow,parseT,hoursFor,kindFor};
+</script>
+
+</body></html>

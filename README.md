@@ -1,4 +1,8 @@
-# Dining Coach menus
+# Dining Coach
+
+**App:** https://gaddipatti-sys.github.io/dining-coach-menus/ (installable web app; each person's setup and likes are saved on their own phone)
+
+## Menu feed
 
 A daily feed of UT Austin dining hall menus (J2, Kins and JCL), with nutrition for each item, for Vikram's Dining Coach.
 
