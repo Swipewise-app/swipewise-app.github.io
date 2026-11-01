@@ -1,5 +1,5 @@
 // Offline support: the app shell is cached; the menu is fetched fresh when online, cached copy when not.
-const CACHE = 'dining-coach-v1';
+const CACHE = 'swipewise-v2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

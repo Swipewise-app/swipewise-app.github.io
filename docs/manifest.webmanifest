@@ -1,7 +1,7 @@
 {
-  "name": "Dining Coach",
-  "short_name": "Dining Coach",
-  "description": "Protein-first plates from UT Austin dining hall menus.",
+  "name": "Swipewise",
+  "short_name": "Swipewise",
+  "description": "Smart, protein-first plates from your dining hall.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

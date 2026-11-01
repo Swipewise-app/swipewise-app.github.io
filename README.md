@@ -1,10 +1,10 @@
-# Dining Coach
+# Swipewise
 
 **App:** https://swipewise-app.github.io/ (installable web app; each person's setup and likes are saved on their own phone)
 
 ## Menu feed
 
-A daily feed of UT Austin dining hall menus (J2, Kins and JCL), with nutrition for each item, for Vikram's Dining Coach.
+A daily feed of UT Austin dining hall menus (J2, Kins and JCL), with nutrition for each item, for the Swipewise app.
 
 - **Feed:** `docs/menu.json`, also served by GitHub Pages at `https://swipewise-app.github.io/menu.json`
 - **Refresh:** `.github/workflows/refresh-menu.yml` runs every day at about 3–4 AM Central. It commits only when the menu changed.
