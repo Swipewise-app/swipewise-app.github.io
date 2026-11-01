@@ -1,12 +1,12 @@
 # Dining Coach
 
-**App:** https://gaddipatti-sys.github.io/dining-coach-menus/ (installable web app; each person's setup and likes are saved on their own phone)
+**App:** https://swipewise-app.github.io/ (installable web app; each person's setup and likes are saved on their own phone)
 
 ## Menu feed
 
 A daily feed of UT Austin dining hall menus (J2, Kins and JCL), with nutrition for each item, for Vikram's Dining Coach.
 
-- **Feed:** `docs/menu.json`, also served by GitHub Pages at `https://<user>.github.io/<repo>/menu.json`
+- **Feed:** `docs/menu.json`, also served by GitHub Pages at `https://swipewise-app.github.io/menu.json`
 - **Refresh:** `.github/workflows/refresh-menu.yml` runs every day at about 3–4 AM Central. It commits only when the menu changed.
 - **Safety:** if UT's site is down or the data looks wrong (fewer than 5 days, a missing J2 or Kins, or 300 or fewer recipes), the run fails and the last good menu stays in place. GitHub emails you about a failed run.
 - **Run it by hand:** Actions tab → "Refresh UT dining menus" → Run workflow.
