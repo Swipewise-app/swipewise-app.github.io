@@ -679,6 +679,11 @@ function openDuring(range, from, to){
   if(!range||/closed/i.test(range)) return false;
   return range.split('|').some(seg=>{ const [a,b]=seg.split('-'); const s=parseT(a), e=parseT(b); return s!=null&&e!=null&&from>=s&&to<=e; });
 }
+// Dinner runs until the last dining hall closes that day (at least 8:30pm), so late dinners still get a plan
+function dinnerEnd(wi){ let end=20*60+30;
+  for(const arr of Object.values((DATA&&DATA.hours)||{})){ const r=arr&&arr[wi]; if(!r||/closed/i.test(r)) continue;
+    for(const seg of r.split('|')){ const e=parseT(seg.split('-')[1]||''); if(e!=null && e>end) end=e; } }
+  return end; }
 function classesOn(wi){ return MY.classes.filter(c=>c.days.includes(DAYCODE[wi])).map(c=>({...c, s:hm(c.start), e:hm(c.end)})).sort((a,b)=>a.s-b.s); }
 
 function mealSlots(wi){
@@ -701,7 +706,7 @@ function mealSlots(wi){
     const st=Math.max(lunch.end+150, 15*60); slots.push({meal:'Snack', start:st, end:st+60, from:home, fromName:homeName(), to:home, toName:homeName()});
   }
   const dFrom = last.e>=15*60 ? B[last.bldg] : home;
-  slots.push({meal:'Dinner', start:dStart, end:dStart+120, from:dFrom, fromName: last.e>=15*60? last.course : homeName(), to:home, toName:homeName()});
+  slots.push({meal:'Dinner', start:dStart, end:Math.max(dStart+120, dinnerEnd(wi)), from:dFrom, fromName: last.e>=15*60? last.course : homeName(), to:home, toName:homeName()});
   return {cl, slots: slots.sort((a,b)=>a.start-b.start)};
 }
 
@@ -746,7 +751,7 @@ function daySlots(wi){
   const {cl, slots}=mealSlots(wi);
   if(cl.length) return {cl, slots};
   const home=MY.buildings[MY.home];
-  return {cl, slots:[{meal:'Breakfast',start:9*60,end:11*60},{meal:'Lunch',start:11*60,end:14*60},{meal:'Dinner',start:16*60+30,end:20*60+30}]
+  return {cl, slots:[{meal:'Breakfast',start:9*60,end:11*60},{meal:'Lunch',start:11*60,end:14*60},{meal:'Dinner',start:16*60+30,end:dinnerEnd(wi)}]
     .map(x=>({...x, from:home, fromName:homeName(), to:home, toName:homeName()}))};
 }
 const forcedCache=new Map();
@@ -949,7 +954,7 @@ function nowCard(date){
   let list=slots;
   if(!cl.length){
     const home=MY.buildings[MY.home];
-    list=[{meal:'Breakfast',start:9*60,end:11*60},{meal:'Lunch',start:11*60,end:14*60},{meal:'Dinner',start:16*60+30,end:20*60+30}]
+    list=[{meal:'Breakfast',start:9*60,end:11*60},{meal:'Lunch',start:11*60,end:14*60},{meal:'Dinner',start:16*60+30,end:dinnerEnd(wi)}]
       .map(x=>({...x, from:home, fromName:homeName(), to:home, toName:homeName()}));
   }
   list=list.filter(s=>s.meal!=='Snack' || (now>=s.start && now<s.end));
