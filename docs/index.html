@@ -38,6 +38,9 @@ h1{font-family:var(--display);font-stretch:80%;font-weight:850;font-size:26px;le
 .day small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .day[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .day[aria-pressed="true"] small{color:inherit;opacity:.75}
+.day .wx{display:block;font-style:normal;font-size:10.5px;line-height:1.2;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.day .wx .hi{color:var(--ink);font-weight:700}
+.day[aria-pressed="true"] .wx,.day[aria-pressed="true"] .wx .hi{color:inherit}
 .day .dot{position:absolute;top:5px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--treat)}
 .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--sunk);padding:4px;border-radius:12px;margin-top:8px}
 .tab{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:8px 2px;white-space:nowrap;border-radius:9px;cursor:pointer}
@@ -801,9 +804,30 @@ function renderDays(){
   for(const ds of Object.keys(DATA.days)){
     const {dow,d}=dayLabel(ds); const wi=weekdayIdx(ds);
     const hasTreat=Object.keys(TREATS).some(k=>k.startsWith(wi+'|') && TREATS[k]==='treat');
-    box.append(el('button',{class:'day',id:'day-'+ds.replace(/\//g,''),'aria-pressed':String(ds===state.date),onclick:()=>{state.date=ds; save(); render();}, 'aria-label': `${dow} ${d}${hasTreat?', treat meal':''}`},
-      el('small',{}, ds===today?'Today':dow), el('b',{},d), hasTreat? el('span',{class:'dot','aria-hidden':'true'}):null));
+    const w=WX[ds];
+    box.append(el('button',{class:'day',id:'day-'+ds.replace(/\//g,''),'aria-pressed':String(ds===state.date),onclick:()=>{state.date=ds; save(); render();}, 'aria-label': `${dow} ${d}${w?`, high ${w[0]}, low ${w[1]} degrees`:''}${hasTreat?', treat meal':''}`},
+      el('small',{}, ds===today?'Today':dow), el('b',{},d),
+      w? el('i',{class:'wx','aria-hidden':'true'}, el('span',{class:'hi'},w[0]+'°'),' '+w[1]+'°') : null,
+      hasTreat? el('span',{class:'dot','aria-hidden':'true'}):null));
   }
+}
+
+/* ===================== Weather: daily high/low for UT Austin (Open-Meteo, free, no key) ===================== */
+let WX={};
+const WX_URL='https://api.open-meteo.com/v1/forecast?latitude=30.2849&longitude=-97.7341&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago&forecast_days=16';
+async function loadWx(){
+  let cached=null;
+  try{ cached=JSON.parse(localStorage.getItem('vdc-wx')||'null'); }catch(e){}
+  if(cached && cached.days){ WX=cached.days; renderDays(); }
+  if(cached && Date.now()-cached.at < 3*3600e3) return;   // refresh at most every 3 hours
+  try{
+    const r=await fetch(WX_URL); if(!r.ok) return; const j=await r.json(); const dd=j.daily||{}; const out={};
+    (dd.time||[]).forEach((iso,i)=>{ const [y,m,d]=iso.split('-'); const hi=dd.temperature_2m_max[i], lo=dd.temperature_2m_min[i];
+      if(hi!=null && lo!=null) out[`${m}/${d}/${y}`]=[Math.round(hi),Math.round(lo)]; });
+    if(!Object.keys(out).length) return;
+    WX=out; try{ localStorage.setItem('vdc-wx', JSON.stringify({at:Date.now(), days:out})); }catch(e){}
+    if(DATA) renderDays();
+  }catch(e){ /* offline: keep whatever we had */ }
 }
 
 function macroLine(p,c,f){ return [el('span',{class:'mp'},r0(p)+'P'),' · ',el('span',{class:'mc'},r0(c)+'C'),' · ',el('span',{class:'mf'},r0(f)+'F')]; }
@@ -1534,6 +1558,7 @@ async function boot(){
   fresh.textContent = dates.includes(t) ? `Menus through ${dayLabel(dates[dates.length-1]).dow} ${dayLabel(dates[dates.length-1]).d}` : 'Menus are out of date';
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{ state.hall=b.dataset.tab; state.menu=false; state.menuVegan=null; save(); render(); }));
   render();
+  loadWx();
   initSync();
 }
 if(typeof document!=='undefined' && document.getElementById('main')) boot();
