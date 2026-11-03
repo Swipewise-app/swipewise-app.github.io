@@ -810,29 +810,45 @@ function renderDays(){
     const {dow,d}=dayLabel(ds); const wi=weekdayIdx(ds);
     const hasTreat=Object.keys(TREATS).some(k=>k.startsWith(wi+'|') && TREATS[k]==='treat');
     const w=WX[ds];
-    box.append(el('button',{class:'day',id:'day-'+ds.replace(/\//g,''),'aria-pressed':String(ds===state.date),onclick:()=>{state.date=ds; save(); render();}, 'aria-label': `${dow} ${d}${w?`, high ${w[0]}, low ${w[1]} degrees`:''}${hasTreat?', treat meal':''}`},
+    box.append(el('button',{class:'day',id:'day-'+ds.replace(/\//g,''),'aria-pressed':String(ds===state.date),onclick:()=>{state.date=ds; save(); render();}, 'aria-label': `${dow} ${d}${w?`${w[0]!=null?`, high ${w[0]}`:''}${w[1]!=null?`, low ${w[1]}`:''} degrees`:''}${hasTreat?', treat meal':''}`},
       el('small',{}, ds===today?'Today':dow), el('b',{},d),
-      w? el('i',{class:'wx','aria-hidden':'true'}, el('span',{class:'hi'},w[0]+'°'),' '+w[1]+'°') : null,
+      w? el('i',{class:'wx','aria-hidden':'true'}, w[0]!=null? el('span',{class:'hi'},w[0]+'°'):null, w[1]!=null? (w[0]!=null?' ':'low ')+w[1]+'°':'') : null,
       hasTreat? el('span',{class:'dot','aria-hidden':'true'}):null));
   }
 }
 
-/* ===================== Weather: daily high/low for UT Austin (Open-Meteo, free, no key) ===================== */
+/* ===================== Weather: daily high/low for UT Austin (US National Weather Service, public domain, no key) ===================== */
 let WX={};
-const WX_URL='https://api.open-meteo.com/v1/forecast?latitude=30.2849&longitude=-97.7341&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago&forecast_days=16';
+const WX_POINT='https://api.weather.gov/points/30.2849,-97.7341';   // UT Austin campus
+// NWS gives 12-hour periods: a daytime high, then that night's low. Pair them by the date each period starts.
+function nwsDays(periods){
+  const out={};
+  for(const p of periods||[]){
+    if(typeof p.temperature!=='number' || !p.startTime) continue;
+    const [y,m,d]=p.startTime.slice(0,10).split('-');   // startTime is local Central time, e.g. 2026-11-03T06:00:00-06:00
+    const k=`${m}/${d}/${y}`; const t=p.temperatureUnit==='C'? Math.round(p.temperature*9/5+32) : Math.round(p.temperature);
+    const v=out[k]||(out[k]=[null,null]); if(p.isDaytime) v[0]=t; else if(v[1]==null) v[1]=t;
+  }
+  return out;
+}
 async function loadWx(){
   let cached=null;
-  try{ cached=JSON.parse(localStorage.getItem('vdc-wx')||'null'); }catch(e){}
+  try{ cached=JSON.parse(localStorage.getItem('vdc-wx2')||'null'); localStorage.removeItem('vdc-wx'); }catch(e){}
   if(cached && cached.days){ WX=cached.days; renderDays(); }
   if(cached && Date.now()-cached.at < 3*3600e3) return;   // refresh at most every 3 hours
   try{
-    const r=await fetch(WX_URL); if(!r.ok) return; const j=await r.json(); const dd=j.daily||{}; const out={};
-    (dd.time||[]).forEach((iso,i)=>{ const [y,m,d]=iso.split('-'); const hi=dd.temperature_2m_max[i], lo=dd.temperature_2m_min[i];
-      if(hi!=null && lo!=null) out[`${m}/${d}/${y}`]=[Math.round(hi),Math.round(lo)]; });
-    if(!Object.keys(out).length) return;
-    WX=out; try{ localStorage.setItem('vdc-wx', JSON.stringify({at:Date.now(), days:out})); }catch(e){}
-    if(DATA) renderDays();
-  }catch(e){ /* offline: keep whatever we had */ }
+    let url=cached && cached.url;   // the forecast address for campus rarely changes; look it up again if it fails
+    for(let attempt=0; attempt<2; attempt++){
+      if(!url){ const pr=await fetch(WX_POINT); if(!pr.ok) return; url=((await pr.json()).properties||{}).forecast; if(!url) return; }
+      const r=await fetch(url);
+      if(!r.ok){ url=null; continue; }
+      const out=nwsDays(((await r.json()).properties||{}).periods);
+      if(!Object.keys(out).length) return;
+      WX=out; try{ localStorage.setItem('vdc-wx2', JSON.stringify({at:Date.now(), url, days:out})); }catch(e){}
+      if(DATA) renderDays();
+      return;
+    }
+  }catch(e){ /* offline or weather.gov busy: keep whatever we had */ }
 }
 
 function macroLine(p,c,f){ return [el('span',{class:'mp'},r0(p)+'P'),' · ',el('span',{class:'mc'},r0(c)+'C'),' · ',el('span',{class:'mf'},r0(f)+'F')]; }
